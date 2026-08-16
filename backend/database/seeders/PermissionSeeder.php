@@ -12,6 +12,7 @@ class PermissionSeeder extends Seeder
         $permissions = [
             ['code' => 'organizations.manage', 'name' => "Gérer l'organisation",        'module' => 'organizations'],
             ['code' => 'users.manage',         'name' => 'Gérer les utilisateurs',       'module' => 'users'],
+            ['code' => 'donors.manage',        'name' => 'Gérer les bailleurs',          'module' => 'projects'],
             ['code' => 'projects.create',      'name' => 'Créer un projet',              'module' => 'projects'],
             ['code' => 'projects.manage',      'name' => 'Gérer les projets',            'module' => 'projects'],
             ['code' => 'expenses.create',      'name' => 'Créer une dépense',            'module' => 'accounting'],

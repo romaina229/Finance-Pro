@@ -18,6 +18,8 @@ export function NavBar() {
         <span className="font-semibold text-slate-900">ONG Finance Pro</span>
         <nav className="flex items-center gap-4 text-sm text-slate-600">
           <Link to="/" className="hover:text-slate-900">Tableau de bord</Link>
+          <Link to="/projects" className="hover:text-slate-900">Projets</Link>
+          <Link to="/donors" className="hover:text-slate-900">Bailleurs</Link>
           <Link to="/organization" className="hover:text-slate-900">Organisation</Link>
           <Link to="/members" className="hover:text-slate-900">Membres</Link>
         </nav>

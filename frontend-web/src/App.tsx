@@ -7,6 +7,8 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import OrganizationSettings from './pages/OrganizationSettings'
 import Members from './pages/Members'
+import Projects from './pages/Projects'
+import Donors from './pages/Donors'
 
 function ProtectedArea({ children }: { children: React.ReactNode }) {
   return (
@@ -26,6 +28,8 @@ function App() {
           <Route path="/" element={<ProtectedArea><Dashboard /></ProtectedArea>} />
           <Route path="/organization" element={<ProtectedArea><OrganizationSettings /></ProtectedArea>} />
           <Route path="/members" element={<ProtectedArea><Members /></ProtectedArea>} />
+          <Route path="/projects" element={<ProtectedArea><Projects /></ProtectedArea>} />
+          <Route path="/donors" element={<ProtectedArea><Donors /></ProtectedArea>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -38,6 +38,11 @@ class Organization extends Model
             ->withTimestamps();
     }
 
+    public function donors(): HasMany
+    {
+        return $this->hasMany(Donor::class);
+    }
+
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);

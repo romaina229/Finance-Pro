@@ -49,8 +49,26 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('roles', [RoleController::class, 'index']);
 
-        // --- Projets (étape 5, stubs à brancher) ---
-        Route::apiResource('projects', \App\Http\Controllers\Api\ProjectController::class);
+        // --- Bailleurs ---
+        Route::get('donors', [\App\Http\Controllers\Api\DonorController::class, 'index']);
+        Route::post('donors', [\App\Http\Controllers\Api\DonorController::class, 'store'])
+            ->middleware('permission:donors.manage');
+        Route::match(['put', 'patch'], 'donors/{donor}', [\App\Http\Controllers\Api\DonorController::class, 'update'])
+            ->middleware('permission:donors.manage');
+        Route::delete('donors/{donor}', [\App\Http\Controllers\Api\DonorController::class, 'destroy'])
+            ->middleware('permission:donors.manage');
+
+        // --- Projets ---
+        Route::get('projects', [\App\Http\Controllers\Api\ProjectController::class, 'index']);
+        Route::get('projects/{project}', [\App\Http\Controllers\Api\ProjectController::class, 'show']);
+        Route::post('projects', [\App\Http\Controllers\Api\ProjectController::class, 'store'])
+            ->middleware('permission:projects.create');
+        Route::match(['put', 'patch'], 'projects/{project}', [\App\Http\Controllers\Api\ProjectController::class, 'update'])
+            ->middleware('permission:projects.manage');
+        Route::delete('projects/{project}', [\App\Http\Controllers\Api\ProjectController::class, 'destroy'])
+            ->middleware('permission:projects.manage');
+
+        // --- Budgets détaillés (étape 11, stub à brancher) ---
         Route::apiResource('projects.budget-lines', \App\Http\Controllers\Api\BudgetLineController::class);
 
         // --- Comptabilité (étapes 6-8, stubs à brancher) ---
