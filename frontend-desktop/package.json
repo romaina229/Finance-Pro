@@ -1,0 +1,25 @@
+{
+  "name": "ong-finance-pro-desktop",
+  "version": "0.1.0",
+  "description": "Application desktop (Windows/Linux) ONG Finance Pro — embarque le frontend web dans une coquille Electron avec accès SQLite local.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0"
+  },
+  "build": {
+    "appId": "com.ongfinancepro.desktop",
+    "productName": "ONG Finance Pro",
+    "files": ["main.js", "preload.js", "../frontend-web/dist/**"],
+    "win": { "target": "nsis" },
+    "linux": { "target": "AppImage" }
+  }
+}
