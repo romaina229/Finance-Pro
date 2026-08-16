@@ -24,24 +24,27 @@ Voir le README de chaque dossier pour les instructions d'installation spécifiqu
 ## Ordre de construction du projet
 
 1. Architecture du projet ✅
-2. Schéma de base de données ✅
-3. Authentification
-4. Organisations
-5. Utilisateurs / rôles / permissions
-6. Projets
-7. Plan comptable
-8. Dépenses / Recettes
-9. Caisse / Banque
-10. Budgets
-11. Pièces justificatives
-12. Rapports
-13. Audit / traçabilité
-14. Moteur Offline First
-15. Synchronisation
-16. Gestion des conflits
-17. Tableau de bord
-18. Desktop / Mobile
-19. Tests / Déploiement
+2. Authentification ✅ — migrations, AuthController (Laravel + Sanctum), pages Login/Register (React)
+3. Organisations — table et modèle créés, CRUD à finaliser
+4. Utilisateurs / rôles / permissions — rôles et permissions de base seedés, gestion fine à venir
+5. Projets
+6. Plan comptable
+7. Dépenses
+8. Recettes
+9. Caisse
+10. Banque
+11. Budgets
+12. Pièces justificatives
+13. Rapports
+14. Audit / traçabilité
+15. Moteur Offline First
+16. Synchronisation
+17. Gestion des conflits
+18. Tableau de bord
+19. Desktop
+20. Mobile
+21. Tests
+22. Déploiement
 
 ## Stack technique
 

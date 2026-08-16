@@ -7,21 +7,31 @@ API Laravel 12, source de vérité pour toutes les organisations de la plateform
 ```
 backend/
 ├── app/
-│   ├── Models/           Modèles Eloquent (Organization, Project, Expense...)
-│   ├── Http/Controllers/Api/   Contrôleurs REST
-│   ├── Services/         Logique métier (AccountingService, ProjectService...)
-│   ├── Sync/             Moteur de synchronisation (upload/download/conflits)
-│   ├── Reports/          Génération de rapports (SYSCOHADA, bailleurs)
-│   └── Permissions/      Gestion des rôles et permissions
+│   ├── Models/                 Organization, User, Role, Permission...
+│   ├── Http/Controllers/Api/   AuthController...
+│   ├── Services/                Logique métier (à venir : AccountingService...)
+│   ├── Sync/                    Moteur de synchronisation (à venir)
+│   ├── Reports/                 Génération de rapports (à venir)
+│   └── Permissions/              Gestion fine des rôles (à venir)
+├── bootstrap/app.php            Config Laravel 12 : enregistre routes/api.php + middleware Sanctum
+├── config/sanctum.php           Config Sanctum (domaines stateful, expiration...)
 ├── database/
-│   ├── migrations/       Migrations (voir docs/database/postgresql_schema.sql pour le schéma cible)
-│   └── seeders/          Données de départ (rôles, plan comptable SYSCOHADA...)
-├── routes/api.php        Toutes les routes de l'API
+│   ├── migrations/               6 migrations : currencies, organizations, roles/permissions,
+│   │                              users, user_organizations, personal_access_tokens
+│   └── seeders/                  RoleSeeder, PermissionSeeder, DatabaseSeeder
+├── routes/
+│   ├── api.php                   Toutes les routes API (auth branchée, le reste en stub)
+│   ├── web.php                   Route de vérification (/)
+│   └── console.php
 ├── composer.json
 └── .env.example
 ```
 
-## Installation (à faire en local — composer non disponible dans cet environnement de génération)
+## Installation
+
+Cet environnement de génération n'a pas accès à Packagist, donc `composer install` n'a jamais pu être exécuté ici. Deux façons de démarrer en local :
+
+### Option A — le plus simple : composer install direct
 
 ```bash
 cd backend
@@ -30,7 +40,7 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Configurer `.env` avec vos identifiants PostgreSQL locaux, puis :
+Configurez `.env` avec vos identifiants PostgreSQL, puis :
 
 ```bash
 php artisan migrate
@@ -38,6 +48,43 @@ php artisan db:seed
 php artisan serve
 ```
 
-## Prochaine étape
+### Option B — si `composer install` échoue à cause de fichiers manquants
 
-Les migrations (`database/migrations/`) sont vides pour l'instant — elles seront générées à partir du schéma défini dans `../docs/database/postgresql_schema.sql`, table par table, dans l'ordre de construction du projet (Authentification → Organisations → Utilisateurs → Projets → ...).
+Si votre version de Composer exige un projet Laravel "propre" au préalable (fichiers `public/index.php`, `config/*.php` non fournis ici pour rester léger), générez un squelette neuf puis fusionnez :
+
+```bash
+composer create-project laravel/laravel:^12.0 backend-tmp
+cp -r backend-tmp/public backend-tmp/config backend/     # ne copiez pas config/sanctum.php, on le garde
+rm -rf backend-tmp
+cd backend
+composer require laravel/sanctum
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+php artisan serve
+```
+
+## Tester l'authentification une fois lancé
+
+```bash
+# Inscription (crée l'utilisateur ET son organisation)
+curl -X POST http://localhost:8000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"full_name":"Jean Dupont","email":"jean@ong.bj","password":"password123","password_confirmation":"password123","organization_name":"ONG Espoir Bénin"}'
+
+# Connexion
+curl -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"jean@ong.bj","password":"password123"}'
+```
+
+## État d'avancement (ordre de construction)
+
+- [x] 1. Architecture du projet
+- [x] 2. Authentification (migrations, AuthController, Sanctum, seeders rôles/permissions)
+- [ ] 3. Organisations (CRUD complet — la table et le modèle existent déjà)
+- [ ] 4. Utilisateurs / rôles / permissions (gestion fine, invitations)
+- [ ] 5. Projets
+- [ ] ... voir le README principal pour la suite

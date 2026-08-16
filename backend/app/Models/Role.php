@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
+class Role extends Model
+{
+    public $timestamps = false;
+
+    protected $fillable = ['code', 'name', 'description', 'hierarchy_level'];
+
+    public function permissions(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class, 'role_permissions');
+    }
+
+    public function hasPermission(string $permissionCode): bool
+    {
+        return $this->permissions()->where('code', $permissionCode)->exists();
+    }
+}

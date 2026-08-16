@@ -14,13 +14,13 @@ use Illuminate\Support\Facades\Route;
 */
 
 // --- Authentification ---
-Route::post('/auth/login', /* AuthController::class, 'login' */ fn () => null);
-Route::post('/auth/register', /* AuthController::class, 'register' */ fn () => null);
+Route::post('/auth/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
+Route::post('/auth/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::post('/auth/logout', fn () => null);
-    Route::get('/auth/me', fn () => null);
+    Route::post('/auth/logout', [\App\Http\Controllers\Api\AuthController::class, 'logout']);
+    Route::get('/auth/me', [\App\Http\Controllers\Api\AuthController::class, 'me']);
 
     // --- Organisations ---
     Route::apiResource('organizations', \App\Http\Controllers\Api\OrganizationController::class)
