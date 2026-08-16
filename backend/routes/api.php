@@ -80,10 +80,28 @@ Route::middleware('auth:sanctum')->group(function () {
         // --- Budgets détaillés (étape 11, stub à brancher) ---
         Route::apiResource('projects.budget-lines', \App\Http\Controllers\Api\BudgetLineController::class);
 
-        // --- Comptabilité (étapes 6-8, stubs à brancher) ---
-        Route::apiResource('expenses', \App\Http\Controllers\Api\ExpenseController::class);
-        Route::post('expenses/{expense}/approve', fn () => null);
-        Route::post('expenses/{expense}/reject', fn () => null);
+        // --- Dépenses ---
+        Route::get('expenses', [\App\Http\Controllers\Api\ExpenseController::class, 'index']);
+        Route::get('expenses/{expense}', [\App\Http\Controllers\Api\ExpenseController::class, 'show']);
+        Route::post('expenses', [\App\Http\Controllers\Api\ExpenseController::class, 'store'])
+            ->middleware('permission:expenses.create');
+        Route::match(['put', 'patch'], 'expenses/{expense}', [\App\Http\Controllers\Api\ExpenseController::class, 'update'])
+            ->middleware('permission:expenses.create');
+        Route::delete('expenses/{expense}', [\App\Http\Controllers\Api\ExpenseController::class, 'destroy'])
+            ->middleware('permission:expenses.create');
+        Route::post('expenses/{expense}/submit', [\App\Http\Controllers\Api\ExpenseController::class, 'submit'])
+            ->middleware('permission:expenses.create');
+        Route::post('expenses/{expense}/approve', [\App\Http\Controllers\Api\ExpenseController::class, 'approve'])
+            ->middleware('permission:expenses.approve');
+        Route::post('expenses/{expense}/reject', [\App\Http\Controllers\Api\ExpenseController::class, 'reject'])
+            ->middleware('permission:expenses.approve');
+        Route::post('expenses/{expense}/mark-paid', [\App\Http\Controllers\Api\ExpenseController::class, 'markPaid'])
+            ->middleware('permission:expenses.approve');
+
+        // --- Référentiel moyens de paiement ---
+        Route::get('payment-methods', function () {
+            return response()->json(['data' => \App\Models\PaymentMethod::all()]);
+        });
 
         Route::apiResource('revenues', \App\Http\Controllers\Api\RevenueController::class);
 

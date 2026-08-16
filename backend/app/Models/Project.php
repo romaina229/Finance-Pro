@@ -52,4 +52,9 @@ class Project extends Model
     {
         return $this->hasMany(BudgetLine::class);
     }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
 }

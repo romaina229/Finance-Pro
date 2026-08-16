@@ -57,9 +57,4 @@ class Organization extends Model
     {
         return $this->hasMany(Revenue::class);
     }
-
-    public function donors(): HasMany
-    {
-        return $this->hasMany(Donor::class);
-    }
 }

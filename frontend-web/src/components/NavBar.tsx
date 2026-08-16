@@ -19,6 +19,7 @@ export function NavBar() {
         <nav className="flex items-center gap-4 text-sm text-slate-600">
           <Link to="/" className="hover:text-slate-900">Tableau de bord</Link>
           <Link to="/projects" className="hover:text-slate-900">Projets</Link>
+          <Link to="/expenses" className="hover:text-slate-900">Dépenses</Link>
           <Link to="/donors" className="hover:text-slate-900">Bailleurs</Link>
           <Link to="/chart-of-accounts" className="hover:text-slate-900">Plan comptable</Link>
           <Link to="/organization" className="hover:text-slate-900">Organisation</Link>

@@ -88,5 +88,6 @@ curl -X POST http://localhost:8000/api/auth/login \
 - [x] 4. Utilisateurs / rôles / permissions (UserController, RoleController, middleware permission:<code>)
 - [x] 5. Projets (ProjectController, DonorController, migrations projects + donors)
 - [x] 6. Plan comptable (ExpenseCategoryController, ExpenseCategorySeeder — modèle SYSCOHADA de départ)
-- [ ] 7. Dépenses
+- [x] 7. Dépenses (ExpenseController avec cycle draft→pending_approval→approved/rejected→paid, payment_methods)
+- [ ] 8. Recettes
 - [ ] ... voir le README principal pour la suite
