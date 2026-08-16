@@ -68,6 +68,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('projects/{project}', [\App\Http\Controllers\Api\ProjectController::class, 'destroy'])
             ->middleware('permission:projects.manage');
 
+        // --- Plan comptable ---
+        Route::get('expense-categories', [\App\Http\Controllers\Api\ExpenseCategoryController::class, 'index']);
+        Route::post('expense-categories', [\App\Http\Controllers\Api\ExpenseCategoryController::class, 'store'])
+            ->middleware('permission:expense_categories.manage');
+        Route::match(['put', 'patch'], 'expense-categories/{category}', [\App\Http\Controllers\Api\ExpenseCategoryController::class, 'update'])
+            ->middleware('permission:expense_categories.manage');
+        Route::delete('expense-categories/{category}', [\App\Http\Controllers\Api\ExpenseCategoryController::class, 'destroy'])
+            ->middleware('permission:expense_categories.manage');
+
         // --- Budgets détaillés (étape 11, stub à brancher) ---
         Route::apiResource('projects.budget-lines', \App\Http\Controllers\Api\BudgetLineController::class);
 

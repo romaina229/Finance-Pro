@@ -28,7 +28,8 @@ Voir le README de chaque dossier pour les instructions d'installation spécifiqu
 3. Organisations ✅ — CRUD (consultation, modification), sélecteur d'organisation courante côté frontend
 4. Utilisateurs / rôles / permissions ✅ — invitation de membres, changement de rôle, retrait, middleware de permission
 5. Projets ✅ — CRUD projets + bailleurs, formulaire complet (budget, dates, statut, bailleur)
-6. Plan comptable
+6. Plan comptable ✅ — modèle SYSCOHADA de départ (seedé), catégories personnalisables par ONG
+7. Dépenses
 6. Plan comptable
 7. Dépenses
 8. Recettes
