@@ -84,7 +84,7 @@ curl -X POST http://localhost:8000/api/auth/login \
 
 - [x] 1. Architecture du projet
 - [x] 2. Authentification (migrations, AuthController, Sanctum, seeders rôles/permissions)
-- [ ] 3. Organisations (CRUD complet — la table et le modèle existent déjà)
-- [ ] 4. Utilisateurs / rôles / permissions (gestion fine, invitations)
+- [x] 3. Organisations (OrganizationController: index/show/update, middleware org.access)
+- [x] 4. Utilisateurs / rôles / permissions (UserController, RoleController, middleware permission:<code>)
 - [ ] 5. Projets
 - [ ] ... voir le README principal pour la suite

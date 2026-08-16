@@ -25,8 +25,8 @@ Voir le README de chaque dossier pour les instructions d'installation spécifiqu
 
 1. Architecture du projet ✅
 2. Authentification ✅ — migrations, AuthController (Laravel + Sanctum), pages Login/Register (React)
-3. Organisations — table et modèle créés, CRUD à finaliser
-4. Utilisateurs / rôles / permissions — rôles et permissions de base seedés, gestion fine à venir
+3. Organisations ✅ — CRUD (consultation, modification), sélecteur d'organisation courante côté frontend
+4. Utilisateurs / rôles / permissions ✅ — invitation de membres, changement de rôle, retrait, middleware de permission
 5. Projets
 6. Plan comptable
 7. Dépenses
