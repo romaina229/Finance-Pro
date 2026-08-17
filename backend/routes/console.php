@@ -1,4 +1,8 @@
 <?php
 
-// Commandes Artisan personnalisées (ex: rappels de synchronisation, purge des jetons expirés...)
-// à ajouter au fur et à mesure. Vide pour l'instant.
+use Illuminate\Foundation\Inspiring;
+use Illuminate\Support\Facades\Artisan;
+
+Artisan::command('inspire', function () {
+    $this->comment(Inspiring::quote());
+})->purpose('Display an inspiring quote');

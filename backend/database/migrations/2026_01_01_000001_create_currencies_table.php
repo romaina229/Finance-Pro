@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -15,7 +16,7 @@ return new class extends Migration
         });
 
         // Devises de départ pour la zone UEMOA et les bailleurs courants
-        \DB::table('currencies')->insert([
+        DB::table('currencies')->insert([
             ['code' => 'XOF', 'name' => 'Franc CFA (UEMOA)', 'symbol' => 'FCFA'],
             ['code' => 'EUR', 'name' => 'Euro', 'symbol' => '€'],
             ['code' => 'USD', 'name' => 'Dollar américain', 'symbol' => '$'],
