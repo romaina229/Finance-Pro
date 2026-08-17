@@ -31,6 +31,32 @@
   .fp-badge-warning { background: #fffbeb; color: #b45309; }
   .fp-badge-danger { background: #fef2f2; color: #b91c1c; }
   .fp-badge-info { background: #eff6ff; color: #1d4ed8; }
+  .fp-table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 0.875rem; background: #ffffff; -webkit-overflow-scrolling: touch; }
+  .fp-table-wrap table { width: 100%; min-width: 720px; border-collapse: collapse; }
+  .fp-table-wrap th { background: #f8fafc; color: #64748b; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.025em; text-transform: uppercase; white-space: nowrap; }
+  .fp-table-wrap th, .fp-table-wrap td { padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; text-align: left; vertical-align: middle; }
+  .fp-table-wrap tbody tr:last-child td { border-bottom: 0; }
+  .fp-table-wrap tbody tr:hover { background: #f8fafc; }
+  .fp-desktop-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .fp-desktop-content { width: 100%; max-width: 1600px; margin-inline: auto; }
+}
+
+@media (min-width: 1024px) {
+  .fp-page-container { padding: 1.75rem 2rem 2.5rem; }
+  .fp-page-header { margin-bottom: 1.75rem; }
+  .fp-page-title { font-size: 1.625rem; line-height: 2.125rem; }
+  .fp-card-header { padding: 1.125rem 1.5rem; }
+  .fp-card-body { padding: 1.5rem; }
+  .fp-stat-card { padding: 1.375rem 1.5rem; }
+}
+
+@media (min-width: 1280px) {
+  .fp-page-container { padding-inline: 2.5rem; }
+  .fp-stat-value { font-size: 1.625rem; }
+}
+
+@media (min-width: 1536px) {
+  .fp-page-container { padding-inline: 3rem; }
 }
 
 @media (max-width: 639px) {
@@ -38,4 +64,5 @@
   .fp-page-header { flex-direction: column; align-items: stretch; }
   .fp-page-title { font-size: 1.25rem; line-height: 1.75rem; }
   .fp-card-header, .fp-card-body, .fp-stat-card { padding: 1rem; }
+  .fp-desktop-toolbar { align-items: stretch; flex-direction: column; }
 }
