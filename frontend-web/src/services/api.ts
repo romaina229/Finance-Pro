@@ -32,7 +32,8 @@ api.interceptors.response.use(
       const cached = await readCachedResponse<unknown>(cacheKey(config))
       if (cached !== undefined) return { data: cached, status: 200, statusText: 'OK (cache hors ligne)', headers: {}, config } as AxiosResponse
     }
-    if (method !== 'GET' && method !== 'HEAD' && (offline || networkFailure)) {
+    const replay = config.headers?.['X-Offline-Replay'] === 'true'
+    if (!replay && method !== 'GET' && method !== 'HEAD' && (offline || networkFailure)) {
       const isFormData = typeof FormData !== 'undefined' && config.data instanceof FormData
       if (!isFormData) {
         const headers: Record<string, string> = {}
