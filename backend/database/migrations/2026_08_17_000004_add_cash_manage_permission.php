@@ -10,14 +10,10 @@ return new class extends Migration
         $permissionId = DB::table('permissions')->where('code', 'cash.manage')->value('id');
 
         if (!$permissionId) {
-            $permissionId = (string) str()->uuid();
-            DB::table('permissions')->insert([
-                'id' => $permissionId,
+            $permissionId = DB::table('permissions')->insertGetId([
                 'code' => 'cash.manage',
                 'name' => 'Gérer la caisse',
                 'module' => 'accounting',
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
         }
 
@@ -27,10 +23,7 @@ return new class extends Migration
             DB::table('role_permissions')->updateOrInsert([
                 'role_id' => $orgAdminId,
                 'permission_id' => $permissionId,
-            ], [
-                'role_id' => $orgAdminId,
-                'permission_id' => $permissionId,
-            ]);
+            ], []);
         }
     }
 
