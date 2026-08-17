@@ -36,12 +36,23 @@ export default function Register() {
       await register(form)
       navigate('/')
     } catch (err: any) {
-      const messages = err.response?.data?.errors
-      setError(
-        messages
-          ? Object.values(messages).flat().join(' ')
-          : "Inscription impossible. Vérifiez les informations saisies."
-      )
+      const response = err.response
+
+      const messages = response?.data?.errors
+
+      if (messages) {
+        setError(Object.values(messages).flat().join(' '))
+      } else if (response?.data?.message) {
+        setError(response.data.message)
+      } else if (response?.status === 419) {
+        setError('Session CSRF expirée ou invalide. Vérifiez la configuration de l’API.')
+      } else if (response?.status === 422) {
+        setError('Les données fournies sont invalides.')
+      } else if (response?.status === 500) {
+        setError('Erreur interne du serveur. Consultez les logs Laravel.')
+      } else {
+        setError("Inscription impossible. Vérifiez les informations saisies.")
+      }
     } finally {
       setLoading(false)
     }

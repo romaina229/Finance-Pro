@@ -15,10 +15,19 @@ return new class extends Migration
             $table->foreignId('role_id')->constrained('roles');
             $table->boolean('is_primary')->default(false);
             $table->enum('status', ['active', 'suspended', 'invited'])->default('active');
-            $table->timestamp('created_at')->useCurrent();
 
-            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
-            $table->foreign('organization_id')->references('id')->on('organizations')->cascadeOnDelete();
+            $table->timestamps();
+
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->cascadeOnDelete();
+
+            $table->foreign('organization_id')
+                ->references('id')
+                ->on('organizations')
+                ->cascadeOnDelete();
+
             $table->unique(['user_id', 'organization_id']);
         });
     }

@@ -98,7 +98,7 @@ export default function OrganizationSettings() {
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Numéro d'agrément
+              Numéro d'enregistrement (si applicable)
             </label>
             <input
               value={form.registration_number ?? ''}

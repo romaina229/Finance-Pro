@@ -13,22 +13,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->statefulApi(); // requis par Sanctum pour les requêtes API
+    $middleware->alias(array_filter([
+        'org.access' => class_exists('App\\Http\\Middleware\\EnsureOrganizationAccess')
+            ? 'App\\Http\\Middleware\\EnsureOrganizationAccess'
+            : null,
 
-        if (class_exists('Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful')) {
-            $middleware->api(prepend: [
-                'Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful',
-            ]);
-        }
-
-        $middleware->alias(array_filter([
-            'org.access' => class_exists('App\\Http\\Middleware\\EnsureOrganizationAccess')
-                ? 'App\\Http\\Middleware\\EnsureOrganizationAccess'
-                : null,
-            'permission' => class_exists('App\\Http\\Middleware\\EnsurePermission')
-                ? 'App\\Http\\Middleware\\EnsurePermission'
-                : null,
-        ], fn ($class) => $class !== null));
+        'permission' => class_exists('App\\Http\\Middleware\\EnsurePermission')
+            ? 'App\\Http\\Middleware\\EnsurePermission'
+            : null,
+    ], fn ($class) => $class !== null));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
