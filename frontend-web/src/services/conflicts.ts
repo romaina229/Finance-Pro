@@ -18,6 +18,17 @@ export async function fetchConflicts(organizationId: string) {
   return data.data
 }
 
+export async function createConflict(organizationId: string, mutation: { id: string; method: string; url: string; data?: unknown }, serverPayload: unknown) {
+  const { data } = await api.post(`/organizations/${organizationId}/sync/conflicts`, {
+    mutation_id: mutation.id,
+    method: mutation.method,
+    url: mutation.url,
+    local_payload: mutation.data ?? null,
+    server_payload: serverPayload ?? null,
+  })
+  return data.data
+}
+
 export async function resolveConflict(organizationId: string, conflictId: string, resolution: 'keep_local' | 'keep_server' | 'manual') {
   const { data } = await api.post(`/organizations/${organizationId}/sync/conflicts/${conflictId}/resolve`, { resolution })
   return data.data
