@@ -12,6 +12,7 @@ import Expenses from './pages/Expenses'
 import Revenues from './pages/Revenues'
 import Donors from './pages/Donors'
 import ChartOfAccounts from './pages/ChartOfAccounts'
+import Cash from './pages/Cash'
 
 function ProtectedArea({ children }: { children: React.ReactNode }) {
   return (
@@ -36,6 +37,7 @@ function App() {
           <Route path="/revenues" element={<ProtectedArea><Revenues /></ProtectedArea>} />
           <Route path="/donors" element={<ProtectedArea><Donors /></ProtectedArea>} />
           <Route path="/chart-of-accounts" element={<ProtectedArea><ChartOfAccounts /></ProtectedArea>} />
+          <Route path="/cash" element={<ProtectedArea><Cash /></ProtectedArea>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

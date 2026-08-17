@@ -1,230 +1,41 @@
 @layer components {
-  .fp-page {
-    min-width: 0;
-    color: #0f172a;
-  }
-
-  .fp-page-container {
-    width: 100%;
-    max-width: 1600px;
-    margin-inline: auto;
-    padding: 1.5rem;
-  }
-
-  .fp-page-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .fp-page-title {
-    margin: 0;
-    font-size: 1.5rem;
-    line-height: 2rem;
-    font-weight: 650;
-    letter-spacing: -0.025em;
-    color: #0f172a;
-  }
-
-  .fp-page-description {
-    margin: 0.375rem 0 0;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    color: #64748b;
-  }
-
-  .fp-card {
-    border: 1px solid #e2e8f0;
-    border-radius: 0.875rem;
-    background: #ffffff;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
-  }
-
-  .fp-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #f1f5f9;
-  }
-
-  .fp-card-title {
-    margin: 0;
-    font-size: 0.9375rem;
-    line-height: 1.375rem;
-    font-weight: 650;
-    color: #1e293b;
-  }
-
-  .fp-card-description {
-    margin: 0.25rem 0 0;
-    font-size: 0.8125rem;
-    line-height: 1.125rem;
-    color: #64748b;
-  }
-
-  .fp-card-body {
-    padding: 1.25rem;
-  }
-
-  .fp-stat-card {
-    display: flex;
-    min-width: 0;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 1.25rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.875rem;
-    background: #ffffff;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
-  }
-
-  .fp-stat-label {
-    font-size: 0.75rem;
-    line-height: 1rem;
-    font-weight: 600;
-    color: #64748b;
-  }
-
-  .fp-stat-value {
-    margin-top: 0.375rem;
-    font-size: 1.5rem;
-    line-height: 2rem;
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    color: #0f172a;
-  }
-
-  .fp-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    min-height: 2.375rem;
-    border-radius: 0.625rem;
-    padding: 0.5rem 0.875rem;
-    font-size: 0.8125rem;
-    line-height: 1.25rem;
-    font-weight: 600;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
-  }
-
-  .fp-btn:focus-visible,
-  .fp-icon-btn:focus-visible {
-    outline: 2px solid #94a3b8;
-    outline-offset: 2px;
-  }
-
-  .fp-btn-primary {
-    border: 1px solid #0f172a;
-    background: #0f172a;
-    color: #ffffff;
-  }
-
-  .fp-btn-primary:hover {
-    background: #1e293b;
-    border-color: #1e293b;
-  }
-
-  .fp-btn-secondary {
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #334155;
-  }
-
-  .fp-btn-secondary:hover {
-    background: #f8fafc;
-    border-color: #94a3b8;
-  }
-
-  .fp-btn-danger {
-    border: 1px solid #fecaca;
-    background: #ffffff;
-    color: #dc2626;
-  }
-
-  .fp-btn-danger:hover {
-    background: #fef2f2;
-    border-color: #fca5a5;
-  }
-
-  .fp-icon-btn {
-    display: inline-flex;
-    height: 2.375rem;
-    width: 2.375rem;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid transparent;
-    border-radius: 0.625rem;
-    color: #64748b;
-    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
-  }
-
-  .fp-icon-btn:hover {
-    border-color: #e2e8f0;
-    background: #f8fafc;
-    color: #0f172a;
-  }
-
-  .fp-badge {
-    display: inline-flex;
-    align-items: center;
-    min-height: 1.5rem;
-    border-radius: 9999px;
-    padding: 0.125rem 0.625rem;
-    font-size: 0.6875rem;
-    line-height: 1rem;
-    font-weight: 650;
-  }
-
-  .fp-badge-neutral {
-    background: #f1f5f9;
-    color: #475569;
-  }
-
-  .fp-badge-success {
-    background: #ecfdf5;
-    color: #047857;
-  }
-
-  .fp-badge-warning {
-    background: #fffbeb;
-    color: #b45309;
-  }
-
-  .fp-badge-danger {
-    background: #fef2f2;
-    color: #b91c1c;
-  }
-
-  .fp-badge-info {
-    background: #eff6ff;
-    color: #1d4ed8;
-  }
+  .fp-page { min-width: 0; color: #0f172a; }
+  .fp-page-container { width: 100%; max-width: 1600px; margin-inline: auto; padding: 1.5rem; }
+  .fp-page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+  .fp-page-title { margin: 0; font-size: 1.5rem; line-height: 2rem; font-weight: 650; letter-spacing: -0.025em; color: #0f172a; }
+  .fp-page-description { margin: 0.375rem 0 0; font-size: 0.875rem; line-height: 1.25rem; color: #64748b; }
+  .fp-card { border: 1px solid #e2e8f0; border-radius: 0.875rem; background: #ffffff; box-shadow: 0 1px 2px rgb(15 23 42 / 0.04); }
+  .fp-card-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid #f1f5f9; }
+  .fp-card-title { margin: 0; font-size: 0.9375rem; line-height: 1.375rem; font-weight: 650; color: #1e293b; }
+  .fp-card-description { margin: 0.25rem 0 0; font-size: 0.8125rem; line-height: 1.125rem; color: #64748b; }
+  .fp-card-body { padding: 1.25rem; }
+  .fp-stat-card { display: flex; min-width: 0; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.25rem; border: 1px solid #e2e8f0; border-radius: 0.875rem; background: #ffffff; box-shadow: 0 1px 2px rgb(15 23 42 / 0.04); }
+  .fp-stat-label { font-size: 0.75rem; line-height: 1rem; font-weight: 600; color: #64748b; }
+  .fp-stat-value { margin-top: 0.375rem; font-size: 1.5rem; line-height: 2rem; font-weight: 700; letter-spacing: -0.025em; color: #0f172a; }
+  .fp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 2.375rem; border-radius: 0.625rem; padding: 0.5rem 0.875rem; font-size: 0.8125rem; line-height: 1.25rem; font-weight: 600; transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease; }
+  .fp-btn:focus-visible, .fp-icon-btn:focus-visible, .fp-input:focus-visible, .input:focus-visible { outline: 2px solid #94a3b8; outline-offset: 2px; }
+  .fp-btn-primary { border: 1px solid #0f172a; background: #0f172a; color: #ffffff; }
+  .fp-btn-primary:hover { background: #1e293b; border-color: #1e293b; }
+  .fp-btn-secondary { border: 1px solid #cbd5e1; background: #ffffff; color: #334155; }
+  .fp-btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+  .fp-btn-danger { border: 1px solid #fecaca; background: #ffffff; color: #dc2626; }
+  .fp-btn-danger:hover { background: #fef2f2; border-color: #fca5a5; }
+  .fp-icon-btn { display: inline-flex; height: 2.375rem; width: 2.375rem; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 0.625rem; color: #64748b; transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease; }
+  .fp-icon-btn:hover { border-color: #e2e8f0; background: #f8fafc; color: #0f172a; }
+  .fp-input, .input { width: 100%; min-height: 2.5rem; border: 1px solid #cbd5e1; border-radius: 0.625rem; background: #ffffff; padding: 0.5rem 0.75rem; font-size: 0.875rem; line-height: 1.25rem; color: #0f172a; transition: border-color 150ms ease, box-shadow 150ms ease; }
+  .fp-input:hover, .input:hover { border-color: #94a3b8; }
+  .fp-input:focus, .input:focus { border-color: #64748b; box-shadow: 0 0 0 3px rgb(100 116 139 / 0.12); outline: none; }
+  .fp-badge { display: inline-flex; align-items: center; min-height: 1.5rem; border-radius: 9999px; padding: 0.125rem 0.625rem; font-size: 0.6875rem; line-height: 1rem; font-weight: 650; }
+  .fp-badge-neutral { background: #f1f5f9; color: #475569; }
+  .fp-badge-success { background: #ecfdf5; color: #047857; }
+  .fp-badge-warning { background: #fffbeb; color: #b45309; }
+  .fp-badge-danger { background: #fef2f2; color: #b91c1c; }
+  .fp-badge-info { background: #eff6ff; color: #1d4ed8; }
 }
 
 @media (max-width: 639px) {
-  .fp-page-container {
-    padding: 1rem;
-  }
-
-  .fp-page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .fp-page-title {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-  }
-
-  .fp-card-header,
-  .fp-card-body,
-  .fp-stat-card {
-    padding: 1rem;
-  }
+  .fp-page-container { padding: 1rem; }
+  .fp-page-header { flex-direction: column; align-items: stretch; }
+  .fp-page-title { font-size: 1.25rem; line-height: 1.75rem; }
+  .fp-card-header, .fp-card-body, .fp-stat-card { padding: 1rem; }
 }
