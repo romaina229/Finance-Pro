@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\CashController;
 use App\Http\Controllers\Api\DocumentController;
+use App\Http\Controllers\Api\ReportController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
@@ -74,10 +75,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('banks/{bankAccount}/reconciliations', [\App\Http\Controllers\Api\BankController::class, 'reconcile'])->middleware('permission:bank.manage');
         Route::apiResource('documents', DocumentController::class)->only(['index', 'store', 'show', 'destroy']);
         Route::get('documents/{document}/download', [DocumentController::class, 'download']);
+        Route::get('reports', [ReportController::class, 'summary']);
+        Route::post('reports/generate', [ReportController::class, 'summary']);
         Route::get('mobile-money-transactions', fn () => null);
         Route::post('mobile-money-transactions/{transaction}/reconcile', fn () => null);
-        Route::get('reports', fn () => null);
-        Route::post('reports/generate', fn () => null);
         Route::get('audit-logs', fn () => null);
     });
 
