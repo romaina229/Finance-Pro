@@ -41,6 +41,6 @@ export default function App() {
     <Route path="/budgets" element={<ProtectedArea><Budgets /></ProtectedArea>} />
     <Route path="/documents" element={<ProtectedArea><Documents /></ProtectedArea>} />
     <Route path="/reports" element={<ProtectedArea><Reports /></ProtectedArea>} />
-    <Route path="/audit" element={<AuditLogs /></ProtectedArea>} />
+    <Route path="/audit" element={<ProtectedArea><AuditLogs /></ProtectedArea>} />
   </Routes></BrowserRouter></AuthProvider>
 }
