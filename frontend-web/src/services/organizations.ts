@@ -16,9 +16,24 @@ export interface OrganizationDetail {
   is_primary?: boolean
 }
 
+interface OrganizationApiResponse extends Omit<OrganizationDetail, 'status' | 'role_id' | 'is_primary'> {
+  pivot?: {
+    role_id?: string | null
+    is_primary?: boolean
+    status?: string
+  }
+}
+
 export async function fetchMyOrganizations() {
   const { data } = await api.get('/organizations')
-  return data.data as OrganizationDetail[]
+  const organizations = data.data as OrganizationApiResponse[]
+
+  return organizations.map((organization) => ({
+    ...organization,
+    role_id: organization.pivot?.role_id ?? null,
+    is_primary: organization.pivot?.is_primary ?? false,
+    status: organization.pivot?.status ?? 'inactive',
+  })) as OrganizationDetail[]
 }
 
 export async function fetchOrganization(organizationId: string) {
