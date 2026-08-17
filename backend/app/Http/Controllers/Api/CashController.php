@@ -58,18 +58,15 @@ class CashController extends Controller
         ]);
 
         $cashRegister->update($data);
-
         return response()->json(['data' => $this->registerPayload($cashRegister->fresh('custodian:id,full_name,email'))]);
     }
 
     public function destroyRegister(Organization $organization, CashRegister $cashRegister): JsonResponse
     {
         $this->ensureRegisterBelongsToOrganization($cashRegister, $organization);
-
         if ($cashRegister->transactions()->exists()) {
             return response()->json(['message' => 'Cette caisse possède déjà des opérations et ne peut pas être supprimée. Fermez-la plutôt.'], 422);
         }
-
         $cashRegister->delete();
         return response()->json(['message' => 'Caisse supprimée.']);
     }
@@ -77,21 +74,18 @@ class CashController extends Controller
     public function transactions(Request $request, Organization $organization, CashRegister $cashRegister): JsonResponse
     {
         $this->ensureRegisterBelongsToOrganization($cashRegister, $organization);
-
         $transactions = $cashRegister->transactions()
             ->with('creator:id,full_name', 'project:id,name')
             ->where('status', 'posted')
             ->orderByDesc('transaction_date')
             ->orderByDesc('created_at')
             ->paginate(min((int) $request->integer('per_page', 20), 100));
-
         return response()->json($transactions);
     }
 
     public function storeTransaction(Request $request, Organization $organization, CashRegister $cashRegister): JsonResponse
     {
         $this->ensureRegisterBelongsToOrganization($cashRegister, $organization);
-
         if ($cashRegister->status !== 'open') {
             return response()->json(['message' => 'Cette caisse est fermée.'], 422);
         }
@@ -106,14 +100,15 @@ class CashController extends Controller
         ]);
 
         $transaction = DB::transaction(function () use ($request, $organization, $cashRegister, $data) {
-            $balance = $this->theoreticalBalance($cashRegister->id, true);
+            $lockedRegister = CashRegister::query()->whereKey($cashRegister->id)->lockForUpdate()->firstOrFail();
+            $balance = $this->theoreticalBalance($lockedRegister->id);
             $amount = (float) $data['amount'];
 
             if ($data['type'] === 'out' && $amount > $balance) {
                 abort(response()->json(['message' => 'Solde de caisse insuffisant pour cette sortie.'], 422));
             }
 
-            return $cashRegister->transactions()->create([
+            return $lockedRegister->transactions()->create([
                 ...$data,
                 'organization_id' => $organization->id,
                 'created_by' => $request->user()->id,
@@ -127,27 +122,19 @@ class CashController extends Controller
     public function reconciliations(Organization $organization, CashRegister $cashRegister): JsonResponse
     {
         $this->ensureRegisterBelongsToOrganization($cashRegister, $organization);
-
-        return response()->json([
-            'data' => $cashRegister->reconciliations()
-                ->with('reconciler:id,full_name')
-                ->latest('reconciliation_date')
-                ->limit(20)
-                ->get(),
-        ]);
+        return response()->json(['data' => $cashRegister->reconciliations()->with('reconciler:id,full_name')->latest('reconciliation_date')->limit(20)->get()]);
     }
 
     public function reconcile(Request $request, Organization $organization, CashRegister $cashRegister): JsonResponse
     {
         $this->ensureRegisterBelongsToOrganization($cashRegister, $organization);
-
         $data = $request->validate([
             'reconciliation_date' => ['required', 'date'],
             'physical_balance' => ['required', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $theoretical = $this->theoreticalBalance($cashRegister->id);
+        $theoretical = $this->theoreticalBalance($cashRegister->id, false, $data['reconciliation_date']);
         $reconciliation = $cashRegister->reconciliations()->create([
             'organization_id' => $organization->id,
             'reconciled_by' => $request->user()->id,
@@ -163,8 +150,6 @@ class CashController extends Controller
 
     private function registerPayload(CashRegister $register): array
     {
-        $balance = $this->theoreticalBalance($register->id);
-
         return [
             'id' => $register->id,
             'code' => $register->code,
@@ -173,25 +158,24 @@ class CashController extends Controller
             'location' => $register->location,
             'status' => $register->status,
             'opening_balance' => $register->opening_balance,
-            'current_balance' => number_format($balance, 2, '.', ''),
+            'current_balance' => number_format($this->theoreticalBalance($register->id), 2, '.', ''),
             'custodian' => $register->custodian,
         ];
     }
 
-    private function theoreticalBalance(string $cashRegisterId, bool $lock = false): float
+    private function theoreticalBalance(string $cashRegisterId, bool $lockRegister = false, ?string $asOfDate = null): float
     {
-        $register = CashRegister::query()->findOrFail($cashRegisterId);
+        $registerQuery = CashRegister::query()->whereKey($cashRegisterId);
+        if ($lockRegister) $registerQuery->lockForUpdate();
+        $register = $registerQuery->firstOrFail();
+
         $query = CashTransaction::query()
             ->where('cash_register_id', $cashRegisterId)
             ->where('status', 'posted');
-
-        if ($lock) {
-            $query->lockForUpdate();
-        }
+        if ($asOfDate) $query->whereDate('transaction_date', '<=', $asOfDate);
 
         $in = (float) (clone $query)->where('type', 'in')->sum('amount');
         $out = (float) (clone $query)->where('type', 'out')->sum('amount');
-
         return round((float) $register->opening_balance + $in - $out, 2);
     }
 
