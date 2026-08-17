@@ -20,11 +20,26 @@ class EnsureOrganizationAccess
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $organizationId = $request->route('organization');
+        $routeOrganization = $request->route('organization');
+
+        // Selon l'ordre des middlewares Laravel, le paramètre peut déjà avoir
+        // été résolu en modèle Organization ou être encore l'UUID de la route.
+        // Toujours normaliser vers l'identifiant réel avant de vérifier
+        // l'appartenance afin d'éviter un faux 403.
+        $organizationId = $routeOrganization instanceof Organization
+            ? $routeOrganization->getKey()
+            : (string) $routeOrganization;
+
+        if ($organizationId === '') {
+            return response()->json([
+                'message' => "L'organisation ciblée est invalide.",
+            ], 404);
+        }
+
         $user = $request->user();
 
         $membership = $user->organizations()
-            ->where('organizations.id', $organizationId)
+            ->whereKey($organizationId)
             ->first();
 
         if (! $membership) {
@@ -39,8 +54,8 @@ class EnsureOrganizationAccess
             ], 403);
         }
 
-        // Remplace le paramètre de route (id string) par le vrai modèle chargé,
-        // et rend le rôle courant disponible à tous les contrôleurs suivants.
+        // Remplace le paramètre de route par le vrai modèle chargé et rend le
+        // rôle courant disponible aux contrôleurs et au middleware permission.
         $request->route()->setParameter('organization', $membership);
         $request->attributes->set('org_role_id', $membership->pivot->role_id);
 
