@@ -61,8 +61,8 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-        <h1 className="text-xl font-semibold text-slate-900 mb-1">Créer votre organisation</h1>
-        <p className="text-sm text-slate-500 mb-6">
+        <h1 className="text-xl font-semibold text-center mb-1">Créer votre organisation</h1>
+        <p className="text-sm text-center mb-6">
           Vous serez administrateur de cette ONG sur la plateforme.
         </p>
 
@@ -102,7 +102,7 @@ export default function Register() {
                 value={form.phone}
                 onChange={update('phone')}
                 className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-                placeholder="+229 ..."
+                placeholder="+229 0197010101"
               />
             </div>
           </div>
@@ -113,6 +113,7 @@ export default function Register() {
               type="email"
               required
               value={form.email}
+              placeholder='votre@exemple.com'
               onChange={update('email')}
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
             />
@@ -124,6 +125,7 @@ export default function Register() {
               <input
                 type="password"
                 required
+                placeholder= "••••••••"
                 value={form.password}
                 onChange={update('password')}
                 className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
@@ -134,6 +136,7 @@ export default function Register() {
               <input
                 type="password"
                 required
+                placeholder= "••••••••"
                 value={form.password_confirmation}
                 onChange={update('password_confirmation')}
                 className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
@@ -156,6 +159,13 @@ export default function Register() {
             Se connecter
           </Link>
         </p>
+        
+        <div className="text-center text-[10px] finance-text mt-3">
+            <p>v1.5.3</p>
+            <p className="mt-1">
+                © {new Date().getFullYear()} - Finance Pro
+            </p>
+        </div>
       </div>
     </div>
   )
