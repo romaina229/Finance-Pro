@@ -30,8 +30,8 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-        <h1 className="text-xl font-semibold text-slate-900 mb-1">ONG Finance Pro</h1>
-        <p className="text-sm text-slate-500 mb-6">Connectez-vous à votre organisation</p>
+        <h1 className="text-xl font-semibold  text-center mb-1">Finance Pro</h1>
+        <p className="text-sm text-center mb-6">Connectez-vous à votre organisation</p>
 
         {error && (
           <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
@@ -79,6 +79,12 @@ export default function Login() {
             Créer une organisation
           </Link>
         </p>
+        <div className="text-center text-[12px] finance-text mt-3">
+            <p>v1.5.3</p>
+            <p className="mt-1">
+                © {new Date().getFullYear()} - Finance Pro
+            </p>
+        </div>
       </div>
     </div>
   )
