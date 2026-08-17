@@ -1,7 +1,10 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { OrganizationProvider } from './context/OrganizationContext'
 import { RequireAuth } from './components/RequireAuth'
+import OfflineStatus from './components/OfflineStatus'
+import { startOfflineSync } from './services/offlineSync'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
@@ -22,7 +25,8 @@ import AuditLogs from './pages/AuditLogs'
 function ProtectedArea({ children }: { children: React.ReactNode }) { return <RequireAuth><OrganizationProvider>{children}</OrganizationProvider></RequireAuth> }
 
 export default function App() {
-  return <AuthProvider><BrowserRouter><Routes>
+  useEffect(() => startOfflineSync(), [])
+  return <AuthProvider><BrowserRouter><OfflineStatus /><Routes>
     <Route path="/login" element={<Login />} /><Route path="/register" element={<Register />} />
     <Route path="/" element={<ProtectedArea><Dashboard /></ProtectedArea>} />
     <Route path="/organization" element={<ProtectedArea><OrganizationSettings /></ProtectedArea>} />
