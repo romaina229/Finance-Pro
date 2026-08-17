@@ -21,6 +21,7 @@ import Budgets from './pages/Budgets'
 import Documents from './pages/Documents'
 import Reports from './pages/Reports'
 import AuditLogs from './pages/AuditLogs'
+import Conflicts from './pages/Conflicts'
 
 function ProtectedArea({ children }: { children: React.ReactNode }) { return <RequireAuth><OrganizationProvider>{children}</OrganizationProvider></RequireAuth> }
 
@@ -42,5 +43,6 @@ export default function App() {
     <Route path="/documents" element={<ProtectedArea><Documents /></ProtectedArea>} />
     <Route path="/reports" element={<ProtectedArea><Reports /></ProtectedArea>} />
     <Route path="/audit" element={<ProtectedArea><AuditLogs /></ProtectedArea>} />
+    <Route path="/conflicts" element={<ProtectedArea><Conflicts /></ProtectedArea>} />
   </Routes></BrowserRouter></AuthProvider>
 }
