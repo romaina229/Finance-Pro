@@ -20,7 +20,7 @@ class BudgetLineController extends Controller
         $year = $request->integer('year', now()->year);
         $lines = BudgetLine::query()->where('organization_id', $organization->id)->where('project_id', $project->id)->where('fiscal_year', $year)->with('category:id,code,name')->orderBy('label')->get()->map(fn (BudgetLine $line) => $this->payload($line));
         $planned = (float) $lines->sum('planned_amount');
-        $actual = (float) Expense::query()->where('organization_id', $organization->id)->where('project_id', $project->id)->whereYear('expense_date', $year)->whereNotIn('status', ['rejected', 'cancelled'])->sum('amount_in_org_currency');
+        $actual = (float) Expense::query()->where('organization_id', $organization->id)->where('project_id', $project->id)->whereYear('expense_date', $year)->whereIn('status', ['approved', 'paid'])->sum('amount_in_org_currency');
         return response()->json(['data' => $lines, 'summary' => ['year' => $year, 'project_budget' => (float) $project->total_budget, 'planned' => round($planned, 2), 'actual' => round($actual, 2), 'remaining' => round($planned - $actual, 2), 'consumption_rate' => $planned > 0 ? round(($actual / $planned) * 100, 1) : 0]]);
     }
 
