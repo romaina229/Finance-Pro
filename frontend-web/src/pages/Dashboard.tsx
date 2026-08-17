@@ -8,6 +8,7 @@ import {
   HandCoins,
   RefreshCw,
   WalletCards,
+  type LucideIcon,
 } from 'lucide-react'
 import { NavBar } from '../components/NavBar'
 import { useAuth } from '../context/AuthContext'
@@ -79,7 +80,7 @@ function StatCard({
   label: string
   value: string
   description: string
-  icon: typeof WalletCards
+  icon: LucideIcon
   tone: 'dark' | 'green' | 'red' | 'blue'
 }) {
   const toneClasses = {
