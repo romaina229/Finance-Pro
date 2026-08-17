@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useOrganization } from '../context/OrganizationContext'
-import { LayoutDashboard, FolderKanban, Receipt, WalletCards, HandCoins, Calculator, Landmark, ChartNoAxesCombined, Building2, Users, Settings, LogOut, Menu, X, ChevronDown, ChevronsLeft, ChevronsRight, FileText } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, Receipt, WalletCards, HandCoins, Calculator, Landmark, ChartNoAxesCombined, Building2, Users, Settings, LogOut, Menu, X, ChevronDown, ChevronsLeft, ChevronsRight, FileText, FileBarChart2 } from 'lucide-react'
 
 const sections = [
   { label: 'PRINCIPAL', items: [
@@ -18,6 +18,7 @@ const sections = [
     { label: 'Bailleurs', path: '/donors', icon: HandCoins },
     { label: 'Plan comptable', path: '/chart-of-accounts', icon: Calculator },
     { label: 'Pièces justificatives', path: '/documents', icon: FileText },
+    { label: 'Rapports', path: '/reports', icon: FileBarChart2 },
   ]},
   { label: 'ORGANISATION', items: [
     { label: 'Organisation', path: '/organization', icon: Building2 },
