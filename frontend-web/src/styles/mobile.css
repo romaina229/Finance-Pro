@@ -1,0 +1,124 @@
+@layer components {
+  /* Mobile-first refinements for Finance Pro. Keep controls touch-friendly and prevent horizontal page overflow. */
+  .fp-mobile-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .fp-mobile-actions { display: grid; grid-template-columns: 1fr; gap: 0.625rem; width: 100%; }
+}
+
+@media (max-width: 767px) {
+  html, body, #root { max-width: 100%; overflow-x: hidden; }
+
+  main {
+    margin-left: 0;
+    padding-top: 72px;
+    width: 100%;
+  }
+
+  .fp-page-container {
+    width: 100%;
+    max-width: none;
+    padding: 1rem 0.875rem 1.5rem;
+  }
+
+  .fp-page-header {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .fp-page-title {
+    font-size: 1.25rem;
+    line-height: 1.65rem;
+    letter-spacing: -0.02em;
+  }
+
+  .fp-page-description {
+    font-size: 0.8125rem;
+    line-height: 1.2rem;
+  }
+
+  .fp-card,
+  .fp-stat-card {
+    border-radius: 0.75rem;
+  }
+
+  .fp-card-header,
+  .fp-card-body,
+  .fp-stat-card {
+    padding: 0.875rem;
+  }
+
+  .fp-stat-card {
+    gap: 0.75rem;
+  }
+
+  .fp-stat-value {
+    font-size: 1.25rem;
+    line-height: 1.65rem;
+    overflow-wrap: anywhere;
+  }
+
+  .fp-btn {
+    min-height: 2.75rem;
+    padding-inline: 0.875rem;
+  }
+
+  .fp-icon-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .fp-input,
+  .input,
+  select,
+  textarea {
+    min-height: 2.75rem;
+    font-size: 1rem;
+  }
+
+  .fp-desktop-toolbar {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .fp-desktop-toolbar > * {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .fp-table-wrap {
+    border-radius: 0.75rem;
+  }
+
+  .fp-table-wrap table {
+    min-width: 680px;
+  }
+
+  .fp-table-wrap th,
+  .fp-table-wrap td {
+    padding: 0.7rem 0.75rem;
+  }
+
+  /* Prevent long identifiers, URLs and labels from breaking the viewport. */
+  .fp-page,
+  .fp-card,
+  .fp-table-wrap,
+  .fp-desktop-content {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 374px) {
+  .fp-page-container { padding-inline: 0.75rem; }
+  .fp-page-title { font-size: 1.125rem; }
+  .fp-stat-value { font-size: 1.125rem; }
+  .fp-card-header,
+  .fp-card-body,
+  .fp-stat-card { padding: 0.75rem; }
+}
+
+@media (min-width: 640px) and (max-width: 767px) {
+  .fp-page-container { padding-inline: 1.25rem; }
+  .fp-mobile-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
