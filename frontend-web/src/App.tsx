@@ -17,15 +17,13 @@ import Cash from './pages/Cash'
 import Budgets from './pages/Budgets'
 import Documents from './pages/Documents'
 import Reports from './pages/Reports'
+import AuditLogs from './pages/AuditLogs'
 
-function ProtectedArea({ children }: { children: React.ReactNode }) {
-  return <RequireAuth><OrganizationProvider>{children}</OrganizationProvider></RequireAuth>
-}
+function ProtectedArea({ children }: { children: React.ReactNode }) { return <RequireAuth><OrganizationProvider>{children}</OrganizationProvider></RequireAuth> }
 
 export default function App() {
   return <AuthProvider><BrowserRouter><Routes>
-    <Route path="/login" element={<Login />} />
-    <Route path="/register" element={<Register />} />
+    <Route path="/login" element={<Login />} /><Route path="/register" element={<Register />} />
     <Route path="/" element={<ProtectedArea><Dashboard /></ProtectedArea>} />
     <Route path="/organization" element={<ProtectedArea><OrganizationSettings /></ProtectedArea>} />
     <Route path="/members" element={<ProtectedArea><Members /></ProtectedArea>} />
@@ -39,5 +37,6 @@ export default function App() {
     <Route path="/budgets" element={<ProtectedArea><Budgets /></ProtectedArea>} />
     <Route path="/documents" element={<ProtectedArea><Documents /></ProtectedArea>} />
     <Route path="/reports" element={<ProtectedArea><Reports /></ProtectedArea>} />
+    <Route path="/audit" element={<ProtectedArea><AuditLogs /></ProtectedArea>} />
   </Routes></BrowserRouter></AuthProvider>
 }

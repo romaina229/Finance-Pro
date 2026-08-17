@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\CashController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Middleware\AuditTrail;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
@@ -17,7 +19,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::get('/organizations', [OrganizationController::class, 'index']);
 
-    Route::middleware('org.access')->prefix('organizations/{organization}')->group(function () {
+    Route::middleware(['org.access', AuditTrail::class])->prefix('organizations/{organization}')->group(function () {
         Route::get('/', [OrganizationController::class, 'show']);
         Route::match(['put', 'patch'], '/', [OrganizationController::class, 'update'])->middleware('permission:organizations.manage');
         Route::get('users', [UserController::class, 'index']);
@@ -77,9 +79,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('documents/{document}/download', [DocumentController::class, 'download']);
         Route::get('reports', [ReportController::class, 'summary']);
         Route::post('reports/generate', [ReportController::class, 'summary']);
+        Route::get('audit-logs', [AuditLogController::class, 'index']);
         Route::get('mobile-money-transactions', fn () => null);
         Route::post('mobile-money-transactions/{transaction}/reconcile', fn () => null);
-        Route::get('audit-logs', fn () => null);
     });
 
     Route::prefix('sync')->group(function () {
