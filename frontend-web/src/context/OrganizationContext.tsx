@@ -25,15 +25,35 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   async function refresh() {
     if (!isAuthenticated) {
       setOrganizations([])
+      setCurrentId(null)
+      localStorage.removeItem(STORAGE_KEY)
       setLoading(false)
       return
     }
+
     setLoading(true)
     try {
       const orgs = await fetchMyOrganizations()
-      setOrganizations(orgs)
-      if (orgs.length > 0 && !orgs.find((o) => o.id === currentId)) {
-        setCurrentOrganizationId(orgs[0].id)
+
+      // Une adhésion inactive ne peut pas accéder aux routes métier protégées
+      // par org.access. Elle ne doit donc pas être proposée comme organisation
+      // courante dans l'interface.
+      const activeOrgs = orgs.filter((org) => org.status === 'active')
+      setOrganizations(activeOrgs)
+
+      // Le localStorage peut contenir un ID provenant d'une ancienne session,
+      // d'une autre base de données ou d'une organisation devenue inactive.
+      // Dans ce cas, on sélectionne une organisation réellement accessible.
+      const storedIsValid = currentId !== null && activeOrgs.some((org) => org.id === currentId)
+
+      if (!storedIsValid) {
+        const fallback = activeOrgs[0]?.id ?? null
+        if (fallback) {
+          localStorage.setItem(STORAGE_KEY, fallback)
+        } else {
+          localStorage.removeItem(STORAGE_KEY)
+        }
+        setCurrentId(fallback)
       }
     } finally {
       setLoading(false)
@@ -41,6 +61,9 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   }
 
   function setCurrentOrganizationId(id: string) {
+    const organization = organizations.find((org) => org.id === id)
+    if (!organization) return
+
     localStorage.setItem(STORAGE_KEY, id)
     setCurrentId(id)
   }
