@@ -13,61 +13,23 @@ class Expense extends Model
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
-        'organization_id',
-        'project_id',
-        'category_id',
-        'amount',
-        'currency',
-        'amount_in_org_currency',
-        'supplier_name',
-        'supplier_contact',
-        'payment_method_id',
-        'payment_reference',
-        'expense_date',
-        'description',
-        'status',
-        'created_by',
-        'submitted_at',
-        'approved_by',
-        'approved_at',
-        'rejection_reason',
+        'organization_id', 'project_id', 'category_id', 'amount', 'currency', 'amount_in_org_currency',
+        'supplier_name', 'supplier_contact', 'payment_method_id', 'cash_register_id', 'bank_account_id',
+        'payment_reference', 'expense_date', 'description', 'status', 'created_by', 'submitted_at',
+        'approved_by', 'approved_at', 'rejection_reason',
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
-        'amount_in_org_currency' => 'decimal:2',
-        'expense_date' => 'date',
-        'submitted_at' => 'datetime',
-        'approved_at' => 'datetime',
+        'amount' => 'decimal:2', 'amount_in_org_currency' => 'decimal:2', 'expense_date' => 'date',
+        'submitted_at' => 'datetime', 'approved_at' => 'datetime',
     ];
 
-    public function organization(): BelongsTo
-    {
-        return $this->belongsTo(Organization::class);
-    }
-
-    public function project(): BelongsTo
-    {
-        return $this->belongsTo(Project::class);
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(ExpenseCategory::class, 'category_id');
-    }
-
-    public function paymentMethod(): BelongsTo
-    {
-        return $this->belongsTo(PaymentMethod::class);
-    }
-
-    public function creator(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function approver(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'approved_by');
-    }
+    public function organization(): BelongsTo { return $this->belongsTo(Organization::class); }
+    public function project(): BelongsTo { return $this->belongsTo(Project::class); }
+    public function category(): BelongsTo { return $this->belongsTo(ExpenseCategory::class, 'category_id'); }
+    public function paymentMethod(): BelongsTo { return $this->belongsTo(PaymentMethod::class); }
+    public function creator(): BelongsTo { return $this->belongsTo(User::class, 'created_by'); }
+    public function approver(): BelongsTo { return $this->belongsTo(User::class, 'approved_by'); }
+    public function cashRegister(): BelongsTo { return $this->belongsTo(CashRegister::class); }
+    public function bankAccount(): BelongsTo { return $this->belongsTo(BankAccount::class); }
 }
