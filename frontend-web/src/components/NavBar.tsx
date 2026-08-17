@@ -2,34 +2,23 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useOrganization } from '../context/OrganizationContext'
-import { LayoutDashboard, FolderKanban, Receipt, WalletCards, HandCoins, Calculator, Landmark, ChartNoAxesCombined, Building2, Users, Settings, LogOut, Menu, X, ChevronDown, ChevronsLeft, ChevronsRight, FileText, FileBarChart2 } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, Receipt, WalletCards, HandCoins, Calculator, Landmark, ChartNoAxesCombined, Building2, Users, Settings, LogOut, Menu, X, ChevronDown, ChevronsLeft, ChevronsRight, FileText, FileBarChart2, ShieldCheck } from 'lucide-react'
 
 const sections = [
-  { label: 'PRINCIPAL', items: [
-    { label: 'Tableau de bord', path: '/', icon: LayoutDashboard },
-    { label: 'Projets', path: '/projects', icon: FolderKanban },
-  ]},
+  { label: 'PRINCIPAL', items: [{ label: 'Tableau de bord', path: '/', icon: LayoutDashboard }, { label: 'Projets', path: '/projects', icon: FolderKanban }]},
   { label: 'FINANCES', items: [
-    { label: 'Dépenses', path: '/expenses', icon: Receipt },
-    { label: 'Recettes', path: '/revenues', icon: WalletCards },
-    { label: 'Caisse', path: '/cash', icon: WalletCards },
-    { label: 'Banque', path: '/bank', icon: Landmark },
-    { label: 'Budgets', path: '/budgets', icon: ChartNoAxesCombined },
-    { label: 'Bailleurs', path: '/donors', icon: HandCoins },
-    { label: 'Plan comptable', path: '/chart-of-accounts', icon: Calculator },
-    { label: 'Pièces justificatives', path: '/documents', icon: FileText },
+    { label: 'Dépenses', path: '/expenses', icon: Receipt }, { label: 'Recettes', path: '/revenues', icon: WalletCards },
+    { label: 'Caisse', path: '/cash', icon: WalletCards }, { label: 'Banque', path: '/bank', icon: Landmark },
+    { label: 'Budgets', path: '/budgets', icon: ChartNoAxesCombined }, { label: 'Bailleurs', path: '/donors', icon: HandCoins },
+    { label: 'Plan comptable', path: '/chart-of-accounts', icon: Calculator }, { label: 'Pièces justificatives', path: '/documents', icon: FileText },
     { label: 'Rapports', path: '/reports', icon: FileBarChart2 },
   ]},
-  { label: 'ORGANISATION', items: [
-    { label: 'Organisation', path: '/organization', icon: Building2 },
-    { label: 'Membres', path: '/members', icon: Users },
-  ]},
+  { label: 'CONTRÔLE', items: [{ label: 'Journal d’audit', path: '/audit', icon: ShieldCheck }]},
+  { label: 'ORGANISATION', items: [{ label: 'Organisation', path: '/organization', icon: Building2 }, { label: 'Membres', path: '/members', icon: Users }]},
 ]
 
 export function NavBar() {
-  const { user, logout } = useAuth()
-  const { currentOrganization } = useOrganization()
-  const navigate = useNavigate(); const location = useLocation()
+  const { user, logout } = useAuth(); const { currentOrganization } = useOrganization(); const navigate = useNavigate(); const location = useLocation()
   const [collapsed, setCollapsed] = useState(false); const [mobileOpen, setMobileOpen] = useState(false); const [profileOpen, setProfileOpen] = useState(false)
   useEffect(() => { document.documentElement.style.setProperty('--finance-sidebar-width', collapsed ? '72px' : '240px'); return () => document.documentElement.style.removeProperty('--finance-sidebar-width') }, [collapsed])
   useEffect(() => { setMobileOpen(false); setProfileOpen(false) }, [location.pathname])
