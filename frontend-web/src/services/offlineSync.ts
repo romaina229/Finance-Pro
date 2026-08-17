@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { api } from './api'
 import { listMutations, removeMutation, updateMutation, type OfflineMutation } from './offlineStore'
+import { createConflict } from './conflicts'
 
 let syncing = false
 let stopTimer: (() => void) | null = null
@@ -12,6 +13,8 @@ const emitSyncEvent = (detail: SyncResult | { syncing: boolean }) => {
 }
 
 const retryDelay = (attempts: number) => Math.min(30_000, 1_000 * 2 ** Math.min(attempts, 5))
+
+const organizationFromUrl = (url: string) => url.match(/\/organizations\/([^/]+)/)?.[1]
 
 async function replayMutation(mutation: OfflineMutation) {
   try {
@@ -25,8 +28,21 @@ async function replayMutation(mutation: OfflineMutation) {
     return true
   } catch (error) {
     const status = axios.isAxiosError(error) ? error.response?.status : undefined
+
+    if (status === 409) {
+      const organizationId = organizationFromUrl(mutation.url)
+      if (organizationId) {
+        try {
+          await createConflict(organizationId, mutation, axios.isAxiosError(error) ? error.response?.data : null)
+          await removeMutation(mutation.id)
+          return false
+        } catch {
+          // Keep the mutation queued if the conflict itself could not be persisted.
+        }
+      }
+    }
+
     await updateMutation({ ...mutation, attempts: mutation.attempts + 1 })
-    if (status && status >= 400 && status < 500 && status !== 408 && status !== 409 && status !== 429) return false
     return false
   }
 }
@@ -43,10 +59,8 @@ export async function syncOfflineMutations(): Promise<SyncResult> {
       if (!navigator.onLine) break
       const success = await replayMutation(mutation)
       if (success) processed += 1
-      else {
-        failed += 1
-        if (mutation.attempts > 0) await new Promise(resolve => setTimeout(resolve, retryDelay(mutation.attempts)))
-      }
+      else failed += 1
+      if (!success && mutation.attempts > 0) await new Promise(resolve => setTimeout(resolve, retryDelay(mutation.attempts)))
     }
   } finally {
     syncing = false

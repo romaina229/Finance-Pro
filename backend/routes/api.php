@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\CashController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\SyncConflictController;
 use App\Http\Middleware\AuditTrail;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
@@ -80,6 +81,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('reports', [ReportController::class, 'summary']);
         Route::post('reports/generate', [ReportController::class, 'summary']);
         Route::get('audit-logs', [AuditLogController::class, 'index']);
+        Route::get('sync/conflicts', [SyncConflictController::class, 'index']);
+        Route::post('sync/conflicts', [SyncConflictController::class, 'store']);
+        Route::post('sync/conflicts/{conflict}/resolve', [SyncConflictController::class, 'resolve']);
         Route::get('mobile-money-transactions', fn () => null);
         Route::post('mobile-money-transactions/{transaction}/reconcile', fn () => null);
     });
@@ -87,6 +91,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('sync')->group(function () {
         Route::post('/upload', fn () => null);
         Route::get('/download', fn () => null);
-        Route::post('/conflicts/{conflict}/resolve', fn () => null);
     });
 });
