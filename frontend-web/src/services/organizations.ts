@@ -11,6 +11,9 @@ export interface OrganizationDetail {
   address: string | null
   default_currency: string
   fiscal_year_start_month: number
+  status?: string
+  role_id?: string | null
+  is_primary?: boolean
 }
 
 export async function fetchMyOrganizations() {
