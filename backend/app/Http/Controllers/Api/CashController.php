@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\CashReconciliation;
 use App\Models\CashRegister;
 use App\Models\CashTransaction;
 use App\Models\Organization;
@@ -18,7 +17,7 @@ class CashController extends Controller
     {
         $registers = CashRegister::query()
             ->where('organization_id', $organization->id)
-            ->with('custodian:id,name,email')
+            ->with('custodian:id,full_name,email')
             ->orderBy('name')
             ->get()
             ->map(fn (CashRegister $register) => $this->registerPayload($register));
@@ -37,9 +36,13 @@ class CashController extends Controller
             'opening_balance' => ['required', 'numeric', 'min:0'],
         ]);
 
-        $register = $organization->cashRegisters()->create($data);
+        $register = CashRegister::create([
+            ...$data,
+            'organization_id' => $organization->id,
+            'status' => 'open',
+        ]);
 
-        return response()->json(['data' => $this->registerPayload($register->load('custodian:id,name,email'))], 201);
+        return response()->json(['data' => $this->registerPayload($register->load('custodian:id,full_name,email'))], 201);
     }
 
     public function updateRegister(Request $request, Organization $organization, CashRegister $cashRegister): JsonResponse
@@ -56,7 +59,7 @@ class CashController extends Controller
 
         $cashRegister->update($data);
 
-        return response()->json(['data' => $this->registerPayload($cashRegister->fresh('custodian:id,name,email'))]);
+        return response()->json(['data' => $this->registerPayload($cashRegister->fresh('custodian:id,full_name,email'))]);
     }
 
     public function destroyRegister(Organization $organization, CashRegister $cashRegister): JsonResponse
@@ -76,7 +79,7 @@ class CashController extends Controller
         $this->ensureRegisterBelongsToOrganization($cashRegister, $organization);
 
         $transactions = $cashRegister->transactions()
-            ->with('creator:id,name', 'project:id,name')
+            ->with('creator:id,full_name', 'project:id,name')
             ->where('status', 'posted')
             ->orderByDesc('transaction_date')
             ->orderByDesc('created_at')
@@ -118,7 +121,7 @@ class CashController extends Controller
             ]);
         });
 
-        return response()->json(['data' => $transaction->load('creator:id,name', 'project:id,name')], 201);
+        return response()->json(['data' => $transaction->load('creator:id,full_name', 'project:id,name')], 201);
     }
 
     public function reconciliations(Organization $organization, CashRegister $cashRegister): JsonResponse
@@ -127,7 +130,7 @@ class CashController extends Controller
 
         return response()->json([
             'data' => $cashRegister->reconciliations()
-                ->with('reconciler:id,name')
+                ->with('reconciler:id,full_name')
                 ->latest('reconciliation_date')
                 ->limit(20)
                 ->get(),
@@ -155,7 +158,7 @@ class CashController extends Controller
             'notes' => $data['notes'] ?? null,
         ]);
 
-        return response()->json(['data' => $reconciliation->load('reconciler:id,name')], 201);
+        return response()->json(['data' => $reconciliation->load('reconciler:id,full_name')], 201);
     }
 
     private function registerPayload(CashRegister $register): array
