@@ -14,12 +14,16 @@ import Donors from './pages/Donors'
 import ChartOfAccounts from './pages/ChartOfAccounts'
 import Bank from './pages/Bank'
 import Cash from './pages/Cash'
+import Budgets from './pages/Budgets'
 
-function ProtectedArea({ children }: { children: React.ReactNode }) { return <RequireAuth><OrganizationProvider>{children}</OrganizationProvider></RequireAuth> }
+function ProtectedArea({ children }: { children: React.ReactNode }) {
+  return <RequireAuth><OrganizationProvider>{children}</OrganizationProvider></RequireAuth>
+}
 
-function App() {
+export default function App() {
   return <AuthProvider><BrowserRouter><Routes>
-    <Route path="/login" element={<Login />} /><Route path="/register" element={<Register />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/register" element={<Register />} />
     <Route path="/" element={<ProtectedArea><Dashboard /></ProtectedArea>} />
     <Route path="/organization" element={<ProtectedArea><OrganizationSettings /></ProtectedArea>} />
     <Route path="/members" element={<ProtectedArea><Members /></ProtectedArea>} />
@@ -28,26 +32,8 @@ function App() {
     <Route path="/revenues" element={<ProtectedArea><Revenues /></ProtectedArea>} />
     <Route path="/donors" element={<ProtectedArea><Donors /></ProtectedArea>} />
     <Route path="/chart-of-accounts" element={<ProtectedArea><ChartOfAccounts /></ProtectedArea>} />
+    <Route path="/cash" element={<ProtectedArea><Cash /></ProtectedArea>} />
     <Route path="/bank" element={<ProtectedArea><Bank /></ProtectedArea>} />
+    <Route path="/budgets" element={<ProtectedArea><Budgets /></ProtectedArea>} />
   </Routes></BrowserRouter></AuthProvider>
-  return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={<ProtectedArea><Dashboard /></ProtectedArea>} />
-          <Route path="/organization" element={<ProtectedArea><OrganizationSettings /></ProtectedArea>} />
-          <Route path="/members" element={<ProtectedArea><Members /></ProtectedArea>} />
-          <Route path="/projects" element={<ProtectedArea><Projects /></ProtectedArea>} />
-          <Route path="/expenses" element={<ProtectedArea><Expenses /></ProtectedArea>} />
-          <Route path="/revenues" element={<ProtectedArea><Revenues /></ProtectedArea>} />
-          <Route path="/donors" element={<ProtectedArea><Donors /></ProtectedArea>} />
-          <Route path="/chart-of-accounts" element={<ProtectedArea><ChartOfAccounts /></ProtectedArea>} />
-          <Route path="/cash" element={<ProtectedArea><Cash /></ProtectedArea>} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
-  )
 }
-export default App
