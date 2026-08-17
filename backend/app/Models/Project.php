@@ -57,4 +57,9 @@ class Project extends Model
     {
         return $this->hasMany(Expense::class);
     }
+
+    public function revenues(): HasMany
+    {
+        return $this->hasMany(Revenue::class);
+    }
 }

@@ -30,7 +30,8 @@ Voir le README de chaque dossier pour les instructions d'installation spécifiqu
 5. Projets ✅ — CRUD projets + bailleurs, formulaire complet (budget, dates, statut, bailleur)
 6. Plan comptable ✅ — modèle SYSCOHADA de départ (seedé), catégories personnalisables par ONG
 7. Dépenses ✅ — cycle complet brouillon → soumission → approbation/rejet → paiement
-8. Recettes
+8. Recettes ✅ — même cycle, avec bailleur et projet optionnels (recette générale possible)
+9. Caisse
 6. Plan comptable
 7. Dépenses
 8. Recettes

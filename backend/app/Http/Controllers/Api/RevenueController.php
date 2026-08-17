@@ -1,0 +1,178 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Organization;
+use App\Models\Revenue;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+
+class RevenueController extends Controller
+{
+    public function index(Request $request, Organization $organization)
+    {
+        $query = $organization->revenues()
+            ->with(['project:id,name,code', 'donor:id,name', 'paymentMethod:id,name', 'creator:id,full_name']);
+
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->project_id);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        return response()->json(['data' => $query->orderByDesc('received_date')->get()]);
+    }
+
+    public function show(Request $request, Organization $organization, Revenue $revenue)
+    {
+        abort_if($revenue->organization_id !== $organization->id, 404);
+
+        return response()->json(['data' => $revenue->load(['project', 'donor', 'paymentMethod', 'creator', 'approver'])]);
+    }
+
+    public function store(Request $request, Organization $organization)
+    {
+        $validator = Validator::make($request->all(), $this->rules());
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        $data = $validator->validated();
+        $data['currency'] = $data['currency'] ?? $organization->default_currency;
+        $data['amount_in_org_currency'] = $data['amount']; // TODO: exchange_rates si devise différente
+
+        $revenue = $organization->revenues()->create([
+            ...$data,
+            'created_by' => $request->user()->id,
+            'status' => 'draft',
+        ]);
+
+        return response()->json(['data' => $revenue->load(['project', 'donor', 'paymentMethod'])], 201);
+    }
+
+    public function update(Request $request, Organization $organization, Revenue $revenue)
+    {
+        abort_if($revenue->organization_id !== $organization->id, 404);
+
+        if (! in_array($revenue->status, ['draft', 'rejected'])) {
+            return response()->json(['message' => 'Seule une recette en brouillon ou rejetée peut être modifiée.'], 422);
+        }
+
+        $validator = Validator::make($request->all(), $this->rules(true));
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        $revenue->update($validator->validated());
+
+        return response()->json(['data' => $revenue->fresh(['project', 'donor', 'paymentMethod'])]);
+    }
+
+    public function destroy(Request $request, Organization $organization, Revenue $revenue)
+    {
+        abort_if($revenue->organization_id !== $organization->id, 404);
+
+        if ($revenue->status !== 'draft') {
+            return response()->json(['message' => 'Seule une recette en brouillon peut être supprimée.'], 422);
+        }
+
+        $revenue->delete();
+
+        return response()->json(['message' => 'Recette supprimée.']);
+    }
+
+    public function submit(Request $request, Organization $organization, Revenue $revenue)
+    {
+        abort_if($revenue->organization_id !== $organization->id, 404);
+
+        if (! in_array($revenue->status, ['draft', 'rejected'])) {
+            return response()->json(['message' => 'Cette recette ne peut pas être soumise dans son état actuel.'], 422);
+        }
+
+        $revenue->update([
+            'status' => 'pending_approval',
+            'submitted_at' => now(),
+            'rejection_reason' => null,
+        ]);
+
+        return response()->json(['data' => $revenue->fresh()]);
+    }
+
+    public function approve(Request $request, Organization $organization, Revenue $revenue)
+    {
+        abort_if($revenue->organization_id !== $organization->id, 404);
+
+        if ($revenue->status !== 'pending_approval') {
+            return response()->json(['message' => 'Seule une recette en attente peut être approuvée.'], 422);
+        }
+
+        $revenue->update([
+            'status' => 'approved',
+            'approved_by' => $request->user()->id,
+            'approved_at' => now(),
+        ]);
+
+        return response()->json(['data' => $revenue->fresh()]);
+    }
+
+    public function reject(Request $request, Organization $organization, Revenue $revenue)
+    {
+        abort_if($revenue->organization_id !== $organization->id, 404);
+
+        $validator = Validator::make($request->all(), [
+            'rejection_reason' => ['required', 'string', 'max:500'],
+        ]);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        if ($revenue->status !== 'pending_approval') {
+            return response()->json(['message' => 'Seule une recette en attente peut être rejetée.'], 422);
+        }
+
+        $revenue->update([
+            'status' => 'rejected',
+            'rejection_reason' => $request->rejection_reason,
+        ]);
+
+        return response()->json(['data' => $revenue->fresh()]);
+    }
+
+    /**
+     * Confirme l'encaissement effectif (fonds réellement reçus sur le compte/mobile money).
+     */
+    public function markPaid(Request $request, Organization $organization, Revenue $revenue)
+    {
+        abort_if($revenue->organization_id !== $organization->id, 404);
+
+        if ($revenue->status !== 'approved') {
+            return response()->json(['message' => 'Seule une recette approuvée peut être marquée encaissée.'], 422);
+        }
+
+        $revenue->update(['status' => 'paid']);
+
+        return response()->json(['data' => $revenue->fresh()]);
+    }
+
+    private function rules(bool $isUpdate = false): array
+    {
+        $req = $isUpdate ? 'sometimes' : 'required';
+
+        return [
+            'project_id'          => ['nullable', 'uuid', 'exists:projects,id'],
+            'donor_id'            => ['nullable', 'uuid', 'exists:donors,id'],
+            'amount'              => [$req, 'numeric', 'min:0.01'],
+            'currency'            => ['nullable', 'string', 'size:3', 'exists:currencies,code'],
+            'revenue_type'        => [$req, 'in:subvention,don,autofinancement,remboursement,cotisation,autre'],
+            'received_date'       => [$req, 'date'],
+            'payment_method_id'   => [$req, 'integer', 'exists:payment_methods,id'],
+            'payment_reference'   => ['nullable', 'string', 'max:100'],
+            'description'         => ['nullable', 'string'],
+        ];
+    }
+}

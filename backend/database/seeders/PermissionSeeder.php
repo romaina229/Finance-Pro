@@ -19,6 +19,7 @@ class PermissionSeeder extends Seeder
             ['code' => 'expenses.create',      'name' => 'Créer une dépense',            'module' => 'accounting'],
             ['code' => 'expenses.approve',     'name' => 'Approuver une dépense',        'module' => 'accounting'],
             ['code' => 'revenues.create',      'name' => 'Créer une recette',            'module' => 'accounting'],
+            ['code' => 'revenues.approve',     'name' => 'Approuver une recette',        'module' => 'accounting'],
             ['code' => 'budgets.manage',       'name' => 'Gérer les budgets',            'module' => 'accounting'],
             ['code' => 'reports.view',         'name' => 'Consulter les rapports',       'module' => 'reports'],
             ['code' => 'reports.export',       'name' => 'Exporter les rapports',        'module' => 'reports'],

@@ -103,7 +103,23 @@ Route::middleware('auth:sanctum')->group(function () {
             return response()->json(['data' => \App\Models\PaymentMethod::all()]);
         });
 
-        Route::apiResource('revenues', \App\Http\Controllers\Api\RevenueController::class);
+        // --- Recettes ---
+        Route::get('revenues', [\App\Http\Controllers\Api\RevenueController::class, 'index']);
+        Route::get('revenues/{revenue}', [\App\Http\Controllers\Api\RevenueController::class, 'show']);
+        Route::post('revenues', [\App\Http\Controllers\Api\RevenueController::class, 'store'])
+            ->middleware('permission:revenues.create');
+        Route::match(['put', 'patch'], 'revenues/{revenue}', [\App\Http\Controllers\Api\RevenueController::class, 'update'])
+            ->middleware('permission:revenues.create');
+        Route::delete('revenues/{revenue}', [\App\Http\Controllers\Api\RevenueController::class, 'destroy'])
+            ->middleware('permission:revenues.create');
+        Route::post('revenues/{revenue}/submit', [\App\Http\Controllers\Api\RevenueController::class, 'submit'])
+            ->middleware('permission:revenues.create');
+        Route::post('revenues/{revenue}/approve', [\App\Http\Controllers\Api\RevenueController::class, 'approve'])
+            ->middleware('permission:revenues.approve');
+        Route::post('revenues/{revenue}/reject', [\App\Http\Controllers\Api\RevenueController::class, 'reject'])
+            ->middleware('permission:revenues.approve');
+        Route::post('revenues/{revenue}/mark-paid', [\App\Http\Controllers\Api\RevenueController::class, 'markPaid'])
+            ->middleware('permission:revenues.approve');
 
         // --- Mobile Money (stub) ---
         Route::get('mobile-money-transactions', fn () => null);
