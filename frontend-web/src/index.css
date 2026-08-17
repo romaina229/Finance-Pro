@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./styles/finance-pro.css";
+@import "./styles/mobile.css";
 
 :root {
   color-scheme: light;
@@ -54,7 +55,6 @@ button:disabled {
   color: #0f172a;
 }
 
-/* Scrollbars: discreet and consistent with the application shell. */
 * {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
