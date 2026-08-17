@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\CashController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\AuditLogController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
@@ -77,9 +78,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('documents/{document}/download', [DocumentController::class, 'download']);
         Route::get('reports', [ReportController::class, 'summary']);
         Route::post('reports/generate', [ReportController::class, 'summary']);
+        Route::get('audit-logs', [AuditLogController::class, 'index'])->middleware('permission:audit.view');
         Route::get('mobile-money-transactions', fn () => null);
         Route::post('mobile-money-transactions/{transaction}/reconcile', fn () => null);
-        Route::get('audit-logs', fn () => null);
     });
 
     Route::prefix('sync')->group(function () {
