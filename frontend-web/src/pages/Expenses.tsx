@@ -4,355 +4,62 @@ import { useOrganization } from '../context/OrganizationContext'
 import { fetchProjects, type Project } from '../services/projects'
 import { fetchExpenseCategories, type ExpenseCategory } from '../services/expenseCategories'
 import { fetchPaymentMethods, type PaymentMethod } from '../services/paymentMethods'
-import {
-  fetchExpenses,
-  createExpense,
-  deleteExpense,
-  submitExpense,
-  approveExpense,
-  rejectExpense,
-  markExpensePaid,
-  type Expense,
-  type ExpenseStatus,
-  type ExpensePayload,
-} from '../services/expenses'
+import { fetchCashRegisters, type CashRegister } from '../services/cash'
+import { fetchBankAccounts, type BankAccount } from '../services/bank'
+import { fetchExpenses, createExpense, deleteExpense, submitExpense, approveExpense, rejectExpense, markExpensePaid, type Expense, type ExpenseStatus, type ExpensePayload } from '../services/expenses'
 
-const STATUS_LABELS: Record<ExpenseStatus, string> = {
-  draft: 'Brouillon',
-  pending_approval: 'En attente',
-  approved: 'Approuvée',
-  rejected: 'Rejetée',
-  paid: 'Payée',
-}
-
-const STATUS_COLORS: Record<ExpenseStatus, string> = {
-  draft: 'bg-slate-100 text-slate-600',
-  pending_approval: 'bg-amber-100 text-amber-700',
-  approved: 'bg-blue-100 text-blue-700',
-  rejected: 'bg-red-100 text-red-700',
-  paid: 'bg-green-100 text-green-700',
-}
-
-const EMPTY_FORM: ExpensePayload = {
-  project_id: '',
-  category_id: null,
-  amount: 0,
-  payment_method_id: 0,
-  expense_date: new Date().toISOString().slice(0, 10),
-  description: '',
-  supplier_name: '',
-}
+const STATUS_LABELS: Record<ExpenseStatus, string> = { draft: 'Brouillon', pending_approval: 'En attente', approved: 'Approuvée', rejected: 'Rejetée', paid: 'Payée' }
+const STATUS_COLORS: Record<ExpenseStatus, string> = { draft: 'bg-slate-100 text-slate-600', pending_approval: 'bg-amber-100 text-amber-700', approved: 'bg-blue-100 text-blue-700', rejected: 'bg-red-100 text-red-700', paid: 'bg-green-100 text-green-700' }
+const EMPTY_FORM: ExpensePayload = { project_id: '', category_id: null, amount: 0, payment_method_id: 0, cash_register_id: null, bank_account_id: null, expense_date: new Date().toISOString().slice(0, 10), description: '', supplier_name: '' }
 
 export default function Expenses() {
   const { currentOrganization } = useOrganization()
-  const [expenses, setExpenses] = useState<Expense[]>([])
-  const [projects, setProjects] = useState<Project[]>([])
-  const [categories, setCategories] = useState<ExpenseCategory[]>([])
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState<ExpensePayload>(EMPTY_FORM)
-  const [statusFilter, setStatusFilter] = useState<ExpenseStatus | ''>('')
+  const [expenses, setExpenses] = useState<Expense[]>([]), [projects, setProjects] = useState<Project[]>([]), [categories, setCategories] = useState<ExpenseCategory[]>([])
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]), [cashRegisters, setCashRegisters] = useState<CashRegister[]>([]), [bankAccounts, setBankAccounts] = useState<BankAccount[]>([])
+  const [loading, setLoading] = useState(true), [error, setError] = useState<string | null>(null), [saving, setSaving] = useState(false), [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState<ExpensePayload>(EMPTY_FORM), [statusFilter, setStatusFilter] = useState<ExpenseStatus | ''>('')
 
   async function load() {
     if (!currentOrganization) return
-    setLoading(true)
+    setLoading(true); setError(null)
     try {
-      const [expensesData, projectsData, categoriesData, methodsData] = await Promise.all([
-        fetchExpenses(currentOrganization.id, statusFilter ? { status: statusFilter } : undefined),
-        fetchProjects(currentOrganization.id),
-        fetchExpenseCategories(currentOrganization.id),
-        fetchPaymentMethods(currentOrganization.id),
-      ])
-      setExpenses(expensesData)
-      setProjects(projectsData)
-      setCategories(categoriesData)
-      setPaymentMethods(methodsData)
-      if (!form.payment_method_id && methodsData.length > 0) {
-        setForm((f) => ({ ...f, payment_method_id: methodsData[0].id }))
-      }
-    } finally {
-      setLoading(false)
-    }
+      const [e, p, c, m, cash, bank] = await Promise.all([fetchExpenses(currentOrganization.id, statusFilter ? { status: statusFilter } : undefined), fetchProjects(currentOrganization.id), fetchExpenseCategories(currentOrganization.id), fetchPaymentMethods(currentOrganization.id), fetchCashRegisters(currentOrganization.id), fetchBankAccounts(currentOrganization.id)])
+      setExpenses(e); setProjects(p); setCategories(c); setPaymentMethods(m); setCashRegisters(cash); setBankAccounts(bank)
+      if (!form.payment_method_id && m.length) setForm(f => ({ ...f, payment_method_id: m[0].id }))
+    } catch (err: any) { setError(err.response?.data?.message ?? "Impossible de charger les dépenses.") } finally { setLoading(false) }
   }
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [currentOrganization?.id, statusFilter])
 
-  useEffect(() => {
-    load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentOrganization?.id, statusFilter])
+  const method = paymentMethods.find(m => m.id === form.payment_method_id)
+  const needsCash = method?.code === 'cash'
+  const needsBank = ['bank_transfer', 'mobile_money_mtn', 'mobile_money_moov', 'mobile_money_orange'].includes(method?.code ?? '')
 
   async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    if (!currentOrganization) return
-    setSaving(true)
-    setError(null)
-    try {
-      await createExpense(currentOrganization.id, form)
-      setForm({ ...EMPTY_FORM, payment_method_id: paymentMethods[0]?.id ?? 0 })
-      setShowForm(false)
-      await load()
-    } catch (err: any) {
-      const messages = err.response?.data?.errors
-      setError(messages ? Object.values(messages).flat().join(' ') : "Impossible d'enregistrer la dépense.")
-    } finally {
-      setSaving(false)
-    }
+    e.preventDefault(); if (!currentOrganization) return
+    setSaving(true); setError(null)
+    try { await createExpense(currentOrganization.id, form); setForm({ ...EMPTY_FORM, payment_method_id: paymentMethods[0]?.id ?? 0 }); setShowForm(false); await load() }
+    catch (err: any) { const messages = err.response?.data?.errors; setError(messages ? Object.values(messages).flat().join(' ') : "Impossible d'enregistrer la dépense.") }
+    finally { setSaving(false) }
   }
+  async function runAction(action: () => Promise<any>) { setError(null); try { await action(); await load() } catch (err: any) { const messages = err.response?.data?.errors; setError(messages ? Object.values(messages).flat().join(' ') : err.response?.data?.message ?? 'Action impossible.') } }
+  function handleReject(id: string) { if (!currentOrganization) return; const reason = prompt('Motif du rejet :'); if (reason) runAction(() => rejectExpense(currentOrganization.id, id, reason)) }
 
-  async function runAction(action: () => Promise<any>) {
-    setError(null)
-    try {
-      await action()
-      await load()
-    } catch (err: any) {
-      setError(err.response?.data?.message ?? 'Action impossible (vérifiez vos permissions).')
-    }
-  }
-
-  async function handleDelete(id: string) {
-    if (!currentOrganization) return
-    if (!confirm('Supprimer cette dépense en brouillon ?')) return
-    runAction(() => deleteExpense(currentOrganization.id, id))
-  }
-
-  async function handleReject(id: string) {
-    if (!currentOrganization) return
-    const reason = prompt('Motif du rejet :')
-    if (!reason) return
-    runAction(() => rejectExpense(currentOrganization.id, id, reason))
-  }
-
-  return (
-    <div className="min-h-screen bg-slate-50">
-      <NavBar />
-      <main className="max-w-5xl mx-auto px-6 py-10">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-semibold text-slate-900">Dépenses</h1>
-          <button
-            onClick={() => setShowForm((v) => !v)}
-            className="bg-slate-900 text-white text-sm font-medium rounded-md px-4 py-2 hover:bg-slate-800"
-          >
-            + Nouvelle dépense
-          </button>
-        </div>
-
-        {error && (
-          <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-            {error}
-          </div>
-        )}
-
-        {showForm && (
-          <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl p-6 mb-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Projet</label>
-                <select
-                  required
-                  value={form.project_id}
-                  onChange={(e) => setForm((f) => ({ ...f, project_id: e.target.value }))}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                >
-                  <option value="">— Choisir —</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>{p.code} — {p.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Catégorie</label>
-                <select
-                  value={form.category_id ?? ''}
-                  onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value || null }))}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                >
-                  <option value="">— Aucune —</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.code ? `${c.code} — ` : ''}{c.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Montant</label>
-                <input
-                  type="number"
-                  required
-                  min={0.01}
-                  step="0.01"
-                  value={form.amount}
-                  onChange={(e) => setForm((f) => ({ ...f, amount: Number(e.target.value) }))}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Moyen de paiement</label>
-                <select
-                  required
-                  value={form.payment_method_id}
-                  onChange={(e) => setForm((f) => ({ ...f, payment_method_id: Number(e.target.value) }))}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                >
-                  {paymentMethods.map((m) => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Date</label>
-                <input
-                  type="date"
-                  required
-                  value={form.expense_date}
-                  onChange={(e) => setForm((f) => ({ ...f, expense_date: e.target.value }))}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Fournisseur</label>
-                <input
-                  value={form.supplier_name}
-                  onChange={(e) => setForm((f) => ({ ...f, supplier_name: e.target.value }))}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Référence paiement (n° transaction, chèque...)
-                </label>
-                <input
-                  value={form.payment_reference ?? ''}
-                  onChange={(e) => setForm((f) => ({ ...f, payment_reference: e.target.value }))}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-              <textarea
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                rows={2}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={saving}
-                className="bg-slate-900 text-white text-sm font-medium rounded-md px-4 py-2 hover:bg-slate-800 disabled:opacity-50"
-              >
-                {saving ? 'Enregistrement...' : 'Enregistrer en brouillon'}
-              </button>
-              <button type="button" onClick={() => setShowForm(false)} className="text-sm text-slate-500 hover:text-slate-900">
-                Annuler
-              </button>
-            </div>
-          </form>
-        )}
-
-        <div className="flex gap-2 mb-4">
-          {(['', 'draft', 'pending_approval', 'approved', 'rejected', 'paid'] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={`text-xs px-3 py-1 rounded-full border ${
-                statusFilter === s ? 'bg-slate-900 text-white border-slate-900' : 'border-slate-300 text-slate-600'
-              }`}
-            >
-              {s === '' ? 'Toutes' : STATUS_LABELS[s]}
-            </button>
-          ))}
-        </div>
-
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          {loading ? (
-            <p className="p-5 text-slate-500 text-sm">Chargement...</p>
-          ) : expenses.length === 0 ? (
-            <p className="p-5 text-slate-400 text-sm">Aucune dépense.</p>
-          ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-500 text-left">
-                <tr>
-                  <th className="px-4 py-2 font-medium">Date</th>
-                  <th className="px-4 py-2 font-medium">Projet</th>
-                  <th className="px-4 py-2 font-medium">Fournisseur</th>
-                  <th className="px-4 py-2 font-medium">Montant</th>
-                  <th className="px-4 py-2 font-medium">Statut</th>
-                  <th className="px-4 py-2"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {expenses.map((exp) => (
-                  <tr key={exp.id} className="border-t border-slate-100">
-                    <td className="px-4 py-2 text-slate-600">{exp.expense_date}</td>
-                    <td className="px-4 py-2 text-slate-900">{exp.project?.code}</td>
-                    <td className="px-4 py-2 text-slate-600">{exp.supplier_name ?? '—'}</td>
-                    <td className="px-4 py-2 text-slate-600">
-                      {Number(exp.amount).toLocaleString('fr-FR')} {exp.currency}
-                    </td>
-                    <td className="px-4 py-2">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[exp.status]}`}>
-                        {STATUS_LABELS[exp.status]}
-                      </span>
-                      {exp.status === 'rejected' && exp.rejection_reason && (
-                        <div className="text-xs text-red-500 mt-1">{exp.rejection_reason}</div>
-                      )}
-                    </td>
-                    <td className="px-4 py-2 text-right space-x-3 whitespace-nowrap">
-                      {(exp.status === 'draft' || exp.status === 'rejected') && currentOrganization && (
-                        <>
-                          <button
-                            onClick={() => runAction(() => submitExpense(currentOrganization.id, exp.id))}
-                            className="text-xs text-blue-600 hover:underline"
-                          >
-                            Soumettre
-                          </button>
-                          {exp.status === 'draft' && (
-                            <button onClick={() => handleDelete(exp.id)} className="text-xs text-red-600 hover:underline">
-                              Supprimer
-                            </button>
-                          )}
-                        </>
-                      )}
-                      {exp.status === 'pending_approval' && currentOrganization && (
-                        <>
-                          <button
-                            onClick={() => runAction(() => approveExpense(currentOrganization.id, exp.id))}
-                            className="text-xs text-green-600 hover:underline"
-                          >
-                            Approuver
-                          </button>
-                          <button onClick={() => handleReject(exp.id)} className="text-xs text-red-600 hover:underline">
-                            Rejeter
-                          </button>
-                        </>
-                      )}
-                      {exp.status === 'approved' && currentOrganization && (
-                        <button
-                          onClick={() => runAction(() => markExpensePaid(currentOrganization.id, exp.id))}
-                          className="text-xs text-green-700 hover:underline"
-                        >
-                          Marquer payée
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </main>
+  return <div className="min-h-screen bg-slate-50"><NavBar /><main className="min-h-screen px-4 pb-10 pt-24 sm:px-6 lg:ml-[var(--finance-sidebar-width)] lg:px-8">
+    <div className="mx-auto max-w-7xl">
+      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">FINANCES</p><h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Dépenses</h1><p className="mt-1 text-sm text-slate-500">Suivez les engagements, validations et décaissements de l'organisation.</p></div><button onClick={() => setShowForm(v => !v)} className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800">+ Nouvelle dépense</button></header>
+      {error && <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {showForm && <form onSubmit={handleSubmit} className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="mb-5"><h2 className="font-semibold text-slate-900">Nouvelle dépense</h2><p className="text-xs text-slate-500">Le compte choisi sera débité au moment du passage à « Payée ».</p></div>
+        <div className="grid gap-4 md:grid-cols-2"><label className="text-sm font-medium text-slate-700">Projet<select required value={form.project_id} onChange={e => setForm(f => ({ ...f, project_id: e.target.value }))} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"><option value="">— Choisir —</option>{projects.map(p => <option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}</select></label><label className="text-sm font-medium text-slate-700">Catégorie<select value={form.category_id ?? ''} onChange={e => setForm(f => ({ ...f, category_id: e.target.value || null }))} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"><option value="">— Aucune —</option>{categories.map(c => <option key={c.id} value={c.id}>{c.code ? `${c.code} — ` : ''}{c.name}</option>)}</select></label></div>
+        <div className="mt-4 grid gap-4 md:grid-cols-3"><label className="text-sm font-medium text-slate-700">Montant<input type="number" required min={0.01} step="0.01" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: Number(e.target.value) }))} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium text-slate-700">Moyen de paiement<select required value={form.payment_method_id} onChange={e => setForm(f => ({ ...f, payment_method_id: Number(e.target.value), cash_register_id: null, bank_account_id: null }))} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">{paymentMethods.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></label><label className="text-sm font-medium text-slate-700">Date<input type="date" required value={form.expense_date} onChange={e => setForm(f => ({ ...f, expense_date: e.target.value }))} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label></div>
+        {needsCash && <label className="mt-4 block text-sm font-medium text-slate-700">Caisse à débiter<select required value={form.cash_register_id ?? ''} onChange={e => setForm(f => ({ ...f, cash_register_id: e.target.value || null }))} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"><option value="">— Choisir la caisse —</option>{cashRegisters.filter(c => c.status === 'open').map(c => <option key={c.id} value={c.id}>{c.code} — {c.name} ({c.currency})</option>)}</select></label>}
+        {needsBank && <label className="mt-4 block text-sm font-medium text-slate-700">Compte à débiter<select required value={form.bank_account_id ?? ''} onChange={e => setForm(f => ({ ...f, bank_account_id: e.target.value || null }))} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"><option value="">— Choisir le compte / portefeuille —</option>{bankAccounts.filter(a => a.status === 'open').map(a => <option key={a.id} value={a.id}>{a.code} — {a.name} ({a.currency})</option>)}</select></label>}
+        <div className="mt-4 grid gap-4 md:grid-cols-2"><label className="text-sm font-medium text-slate-700">Fournisseur<input value={form.supplier_name ?? ''} onChange={e => setForm(f => ({ ...f, supplier_name: e.target.value }))} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium text-slate-700">Référence<input value={form.payment_reference ?? ''} onChange={e => setForm(f => ({ ...f, payment_reference: e.target.value }))} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label></div>
+        <label className="mt-4 block text-sm font-medium text-slate-700">Description<textarea rows={2} value={form.description ?? ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
+        <div className="mt-5 flex flex-wrap gap-3"><button disabled={saving} type="submit" className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{saving ? 'Enregistrement...' : 'Enregistrer en brouillon'}</button><button type="button" onClick={() => setShowForm(false)} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600">Annuler</button></div>
+      </form>}
+      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">{(['', 'draft', 'pending_approval', 'approved', 'rejected', 'paid'] as const).map(s => <button key={s} onClick={() => setStatusFilter(s)} className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${statusFilter === s ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-600'}`}>{s === '' ? 'Toutes' : STATUS_LABELS[s]}</button>)}</div>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="overflow-x-auto">{loading ? <p className="p-6 text-sm text-slate-500">Chargement...</p> : expenses.length === 0 ? <p className="p-8 text-center text-sm text-slate-400">Aucune dépense.</p> : <table className="min-w-[900px] w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-400"><tr><th className="px-4 py-3">Date</th><th className="px-4 py-3">Projet</th><th className="px-4 py-3">Fournisseur</th><th className="px-4 py-3">Montant</th><th className="px-4 py-3">Règlement</th><th className="px-4 py-3">Statut</th><th className="px-4 py-3"></th></tr></thead><tbody>{expenses.map(exp => <tr key={exp.id} className="border-t border-slate-100"><td className="px-4 py-3 text-slate-600">{exp.expense_date}</td><td className="px-4 py-3 font-medium text-slate-900">{exp.project?.code ?? '—'}</td><td className="px-4 py-3 text-slate-600">{exp.supplier_name ?? '—'}</td><td className="px-4 py-3 font-semibold text-slate-800">{Number(exp.amount).toLocaleString('fr-FR')} {exp.currency}</td><td className="px-4 py-3 text-xs text-slate-500">{exp.cash_register?.name ?? exp.bank_account?.name ?? exp.payment_method?.name ?? '—'}</td><td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs ${STATUS_COLORS[exp.status]}`}>{STATUS_LABELS[exp.status]}</span></td><td className="whitespace-nowrap px-4 py-3 text-right">{(exp.status === 'draft' || exp.status === 'rejected') && currentOrganization && <><button onClick={() => runAction(() => submitExpense(currentOrganization.id, exp.id))} className="mr-3 text-xs font-medium text-blue-600">Soumettre</button>{exp.status === 'draft' && <button onClick={() => runAction(() => deleteExpense(currentOrganization.id, exp.id))} className="text-xs font-medium text-red-600">Supprimer</button>}</>}{exp.status === 'pending_approval' && currentOrganization && <><button onClick={() => runAction(() => approveExpense(currentOrganization.id, exp.id))} className="mr-3 text-xs font-medium text-green-600">Approuver</button><button onClick={() => handleReject(exp.id)} className="text-xs font-medium text-red-600">Rejeter</button></>}{exp.status === 'approved' && currentOrganization && <button onClick={() => runAction(() => markExpensePaid(currentOrganization.id, exp.id))} className="text-xs font-medium text-green-700">Marquer payée</button>}</td></tr>)}</tbody></table>}</div></div>
     </div>
-  )
+  </main></div>
 }
