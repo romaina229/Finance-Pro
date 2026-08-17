@@ -15,6 +15,7 @@ import ChartOfAccounts from './pages/ChartOfAccounts'
 import Bank from './pages/Bank'
 import Cash from './pages/Cash'
 import Budgets from './pages/Budgets'
+import Documents from './pages/Documents'
 
 function ProtectedArea({ children }: { children: React.ReactNode }) {
   return <RequireAuth><OrganizationProvider>{children}</OrganizationProvider></RequireAuth>
@@ -35,5 +36,6 @@ export default function App() {
     <Route path="/cash" element={<ProtectedArea><Cash /></ProtectedArea>} />
     <Route path="/bank" element={<ProtectedArea><Bank /></ProtectedArea>} />
     <Route path="/budgets" element={<ProtectedArea><Budgets /></ProtectedArea>} />
+    <Route path="/documents" element={<ProtectedArea><Documents /></ProtectedArea>} />
   </Routes></BrowserRouter></AuthProvider>
 }
