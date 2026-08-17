@@ -32,14 +32,21 @@ backend/
 
 ## Installation
 
+⚠️ Le `composer.lock` présent dans ce dépôt a été généré **avant** l'ajout de `laravel/sanctum`
+à `composer.json` (fusion entre mon scaffold et votre `composer create-project` local).
+La première fois, utilisez `composer update` et non `composer install` :
+
 ```bash
 cd backend
+composer update laravel/sanctum
 composer install
 cp .env.example .env
 php artisan key:generate
 ```
 
-Configurez `.env` avec vos identifiants PostgreSQL, puis :
+Configurez `.env` avec vos identifiants PostgreSQL (voir les variables `DB_*` — le fichier
+`.env.example` est reparti du modèle Laravel par défaut en SQLite, changez `DB_CONNECTION=pgsql`
+et renseignez `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`), puis :
 
 ```bash
 php artisan migrate
