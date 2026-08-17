@@ -2,9 +2,22 @@
 
 :root {
   color-scheme: light;
+  --finance-sidebar-width: 240px;
 }
 
 body {
   margin: 0;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  background: #f8fafc;
+}
+
+main {
+  min-width: 0;
+  padding-top: 64px;
+}
+
+@media (min-width: 1024px) {
+  main {
+    margin-left: var(--finance-sidebar-width);
+  }
 }
