@@ -62,7 +62,7 @@ button:disabled {
 
 main {
   min-width: 0;
-  padding-top: 64px;
+  padding-top: 88px;
 }
 
 @media (min-width: 1024px) {
