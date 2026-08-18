@@ -23,7 +23,9 @@ class FinancialPostingService
         if (! $method) throw ValidationException::withMessages(['payment_method_id' => 'Le mode de paiement est obligatoire.']);
 
         $isCash = $method->code === 'cash';
-        $isBank = in_array($method->code, ['bank_transfer','mobile_money_mtn','mobile_money_moov','mobile_money_orange'], true);
+        // Un chèque débite in fine un compte bancaire (c'est là qu'il est encaissé/décaissé) :
+        // il est donc traité comme les autres moyens de paiement bancaires, pas comme la caisse.
+        $isBank = in_array($method->code, ['bank_transfer','cheque','mobile_money_mtn','mobile_money_moov','mobile_money_orange'], true);
 
         if ($isCash) {
             if (! $operation->cash_register_id) throw ValidationException::withMessages(['cash_register_id' => 'Sélectionnez la caisse utilisée.']);
