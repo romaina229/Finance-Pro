@@ -143,11 +143,24 @@ export default function Dashboard() {
 
   const currency = currentOrganization?.default_currency || 'XOF'
 
+  // Seuls les montants "approved" et "paid" représentent de l'argent réellement
+  // engagé/reçu. Les brouillons, dépenses en attente ou rejetées ne doivent
+  // jamais entrer dans les totaux financiers affichés au tableau de bord.
+  const CONFIRMED_STATUSES: readonly string[] = ['approved', 'paid']
+  const confirmedExpenses = useMemo(
+    () => data.expenses.filter((item) => CONFIRMED_STATUSES.includes(item.status)),
+    [data.expenses]
+  )
+  const confirmedRevenues = useMemo(
+    () => data.revenues.filter((item) => CONFIRMED_STATUSES.includes(item.status)),
+    [data.revenues]
+  )
+
   const totals = useMemo(() => {
-    const revenues = data.revenues
+    const revenues = confirmedRevenues
       .filter((item) => item.currency === currency)
       .reduce((sum, item) => sum + Number(item.amount), 0)
-    const expenses = data.expenses
+    const expenses = confirmedExpenses
       .filter((item) => item.currency === currency)
       .reduce((sum, item) => sum + Number(item.amount), 0)
 
@@ -157,20 +170,20 @@ export default function Dashboard() {
       balance: revenues - expenses,
       activeProjects: data.projects.filter((project) => project.status === 'active').length,
     }
-  }, [currency, data])
+  }, [currency, confirmedRevenues, confirmedExpenses, data.projects])
 
   const months = useMemo(() => {
     const points = getLastMonths(6)
     const byKey = new Map(points.map((point) => [point.key, point]))
 
-    data.revenues
+    confirmedRevenues
       .filter((item) => item.currency === currency)
       .forEach((item) => {
         const point = byKey.get(getMonthKey(item.received_date))
         if (point) point.revenues += Number(item.amount)
       })
 
-    data.expenses
+    confirmedExpenses
       .filter((item) => item.currency === currency)
       .forEach((item) => {
         const point = byKey.get(getMonthKey(item.expense_date))
@@ -178,7 +191,7 @@ export default function Dashboard() {
       })
 
     return points
-  }, [currency, data])
+  }, [currency, confirmedRevenues, confirmedExpenses])
 
   const maxMonthValue = Math.max(1, ...months.flatMap((month) => [month.revenues, month.expenses]))
 
@@ -186,7 +199,7 @@ export default function Dashboard() {
     return data.projects
       .map((project) => {
         const budget = Number(project.total_budget)
-        const spent = data.expenses
+        const spent = confirmedExpenses
           .filter((expense) => expense.project_id === project.id && expense.currency === project.currency)
           .reduce((sum, expense) => sum + Number(expense.amount), 0)
         const percentage = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0
@@ -195,10 +208,10 @@ export default function Dashboard() {
       })
       .sort((a, b) => b.budget - a.budget)
       .slice(0, 5)
-  }, [data])
+  }, [data.projects, confirmedExpenses])
 
   const recentActivity = useMemo(() => {
-    const revenues = data.revenues.map((item) => ({
+    const revenues = confirmedRevenues.map((item) => ({
       id: `revenue-${item.id}`,
       date: item.received_date,
       type: 'revenue' as const,
@@ -208,7 +221,7 @@ export default function Dashboard() {
       currency: item.currency,
     }))
 
-    const expenses = data.expenses.map((item) => ({
+    const expenses = confirmedExpenses.map((item) => ({
       id: `expense-${item.id}`,
       date: item.expense_date,
       type: 'expense' as const,
@@ -221,7 +234,7 @@ export default function Dashboard() {
     return [...revenues, ...expenses]
       .sort((a, b) => b.date.localeCompare(a.date))
       .slice(0, 6)
-  }, [data])
+  }, [confirmedRevenues, confirmedExpenses])
 
   return (
     <div className="min-h-screen bg-slate-50">
