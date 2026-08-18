@@ -9,6 +9,7 @@ use App\Models\BankTransaction;
 use App\Models\Organization;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class BankController extends Controller
@@ -61,7 +62,26 @@ class BankController extends Controller
         if ($data['type'] === 'out' && $data['amount'] > $this->balance($bankAccount)) {
             return response()->json(['message'=>'Solde bancaire insuffisant pour cette sortie.'],422);
         }
-        $transaction = $bankAccount->transactions()->create([...$data,'organization_id'=>$organization->id,'created_by'=>$request->user()->id,'status'=>'posted']);
+
+        // Verrouille la ligne du compte bancaire pendant la vérification de solde
+        // + l'insertion, pour éviter qu'une écriture concurrente (ex: deux dépenses
+        // marquées payées en même temps) ne fasse passer le solde en négatif.
+        // Reproduit le même schéma que CashController::storeTransaction.
+        $transaction = DB::transaction(function () use ($request, $organization, $bankAccount, $data) {
+            $lockedAccount = BankAccount::query()->whereKey($bankAccount->id)->lockForUpdate()->firstOrFail();
+
+            if ($data['type'] === 'out' && (float) $data['amount'] > $this->balance($lockedAccount)) {
+                abort(response()->json(['message' => 'Solde bancaire insuffisant pour cette sortie.'], 422));
+            }
+
+            return $lockedAccount->transactions()->create([
+                ...$data,
+                'organization_id' => $organization->id,
+                'created_by' => $request->user()->id,
+                'status' => 'posted',
+            ]);
+        });
+
         return response()->json(['data'=>$transaction->load('project:id,name','creator:id,full_name')],201);
     }
 
