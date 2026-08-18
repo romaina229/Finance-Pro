@@ -15,7 +15,8 @@ export type SyncConflict = {
 
 export async function fetchConflicts(organizationId: string) {
   const { data } = await api.get(`/organizations/${organizationId}/sync/conflicts`)
-  return data.data
+  const payload = data.data
+  return (Array.isArray(payload) ? payload : payload?.data ?? []) as SyncConflict[]
 }
 
 export async function createConflict(organizationId: string, mutation: { id: string; method: string; url: string; data?: unknown }, serverPayload: unknown) {

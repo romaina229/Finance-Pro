@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { FileBarChart2, TrendingDown, TrendingUp, Wallet, RefreshCw } from 'lucide-react'
 import { NavBar } from '../components/NavBar'
 import { useOrganization } from '../context/OrganizationContext'
-import { fetchFinancialReport, FinancialReport } from '../services/reports'
+import { fetchFinancialReport, type FinancialReport } from '../services/reports'
 
 const money = (value: number) => new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value)
 
@@ -25,7 +25,7 @@ export default function Reports() {
   useEffect(() => { load() }, [currentOrganization])
 
   const maxMonthly = useMemo(() => Math.max(...(report?.monthly.map((m) => Math.max(m.revenues, m.expenses)) || [1]), 1), [report])
-  const currency = currentOrganization?.currency || 'FCFA'
+  const currency = currentOrganization?.default_currency || 'FCFA'
 
   return <div className="min-h-screen bg-slate-50">
     <NavBar />
