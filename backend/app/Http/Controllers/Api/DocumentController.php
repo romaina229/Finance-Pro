@@ -15,7 +15,7 @@ class DocumentController extends Controller
     {
         return response()->json([
             'data' => Document::where('organization_id', $organization->id)
-                ->with('uploader:id,name,email')
+                ->with('uploader:id,full_name,email')
                 ->latest()
                 ->paginate(25),
         ]);
@@ -46,13 +46,13 @@ class DocumentController extends Controller
             'description' => $validated['description'] ?? null,
         ]);
 
-        return response()->json(['data' => $document->load('uploader:id,name,email')], 201);
+        return response()->json(['data' => $document->load('uploader:id,full_name,email')], 201);
     }
 
     public function show(Organization $organization, Document $document)
     {
         $this->assertBelongsToOrganization($document, $organization);
-        return response()->json(['data' => $document->load('uploader:id,name,email')]);
+        return response()->json(['data' => $document->load('uploader:id,full_name,email')]);
     }
 
     public function download(Organization $organization, Document $document)

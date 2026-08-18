@@ -9,7 +9,7 @@ export interface DocumentItem {
   documentable_type: string | null
   documentable_id: string | null
   created_at: string
-  uploader?: { id: string; name: string; email: string } | null
+  uploader?: { id: string; full_name: string; email: string } | null
 }
 
 export async function fetchDocuments(organizationId: string) {

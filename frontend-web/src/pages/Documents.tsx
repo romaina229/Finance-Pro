@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FileText, Upload, Download, Trash2, Search, RefreshCw } from 'lucide-react'
 import { useOrganization } from '../context/OrganizationContext'
-import { deleteDocument, documentDownloadUrl, DocumentItem, fetchDocuments, uploadDocument } from '../services/documents'
+import { deleteDocument, documentDownloadUrl, type DocumentItem, fetchDocuments, uploadDocument } from '../services/documents'
 
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} o`

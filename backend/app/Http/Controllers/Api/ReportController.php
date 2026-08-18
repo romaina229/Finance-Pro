@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Expense;
+use App\Models\Organization;
 use App\Models\Project;
 use App\Models\Revenue;
 use Carbon\Carbon;
@@ -11,8 +12,10 @@ use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
-    public function summary(Request $request, string $organization)
+    public function summary(Request $request, Organization $organization)
     {
+        $organizationId = $organization->id;
+
         $from = $request->date('from')?->startOfDay() ?? now()->subMonths(5)->startOfMonth();
         $to = $request->date('to')?->endOfDay() ?? now()->endOfDay();
 
@@ -21,12 +24,12 @@ class ReportController extends Controller
         }
 
         $expenseQuery = Expense::query()
-            ->where('organization_id', $organization)
+            ->where('organization_id', $organizationId)
             ->whereBetween('expense_date', [$from->toDateString(), $to->toDateString()])
             ->whereIn('status', ['approved', 'paid']);
 
         $revenueQuery = Revenue::query()
-            ->where('organization_id', $organization)
+            ->where('organization_id', $organizationId)
             ->whereBetween('received_date', [$from->toDateString(), $to->toDateString()])
             ->whereIn('status', ['approved', 'paid']);
 
@@ -42,10 +45,10 @@ class ReportController extends Controller
             $monthly[] = [
                 'month' => $cursor->format('Y-m'),
                 'label' => $cursor->locale('fr')->translatedFormat('M Y'),
-                'revenues' => (float) Revenue::query()->where('organization_id', $organization)
+                'revenues' => (float) Revenue::query()->where('organization_id', $organizationId)
                     ->whereBetween('received_date', [$monthFrom->toDateString(), $monthTo->toDateString()])
                     ->whereIn('status', ['approved', 'paid'])->sum('amount_in_org_currency'),
-                'expenses' => (float) Expense::query()->where('organization_id', $organization)
+                'expenses' => (float) Expense::query()->where('organization_id', $organizationId)
                     ->whereBetween('expense_date', [$monthFrom->toDateString(), $monthTo->toDateString()])
                     ->whereIn('status', ['approved', 'paid'])->sum('amount_in_org_currency'),
             ];
@@ -53,7 +56,7 @@ class ReportController extends Controller
         }
 
         $projects = Project::query()
-            ->where('organization_id', $organization)
+            ->where('organization_id', $organizationId)
             ->withSum(['expenses as expenses_total' => fn ($q) => $q->whereIn('status', ['approved', 'paid'])
                 ->whereBetween('expense_date', [$from->toDateString(), $to->toDateString()])], 'amount_in_org_currency')
             ->withSum(['revenues as revenues_total' => fn ($q) => $q->whereIn('status', ['approved', 'paid'])
@@ -80,7 +83,7 @@ class ReportController extends Controller
                     'revenues' => $revenues,
                     'expenses' => $expenses,
                     'balance' => $revenues - $expenses,
-                    'projects' => Project::where('organization_id', $organization)->count(),
+                    'projects' => Project::where('organization_id', $organizationId)->count(),
                 ],
                 'monthly' => $monthly,
                 'projects' => $projects,

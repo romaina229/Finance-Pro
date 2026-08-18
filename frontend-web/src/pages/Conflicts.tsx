@@ -4,23 +4,23 @@ import { fetchConflicts, resolveConflict, type SyncConflict } from '../services/
 import { useOrganization } from '../context/OrganizationContext'
 
 export default function Conflicts() {
-  const { organization } = useOrganization()
+  const { currentOrganization } = useOrganization()
   const [items, setItems] = useState<SyncConflict[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    if (!organization?.id) return
+    if (!currentOrganization?.id) return
     setLoading(true)
-    try { setItems(await fetchConflicts(organization.id)) } finally { setLoading(false) }
-  }, [organization?.id])
+    try { setItems(await fetchConflicts(currentOrganization.id)) } finally { setLoading(false) }
+  }, [currentOrganization?.id])
 
   useEffect(() => { void load() }, [load])
 
   const resolve = async (id: string, resolution: 'keep_local' | 'keep_server' | 'manual') => {
-    if (!organization?.id) return
+    if (!currentOrganization?.id) return
     setBusy(id)
-    try { await resolveConflict(organization.id, id, resolution); await load() } finally { setBusy(null) }
+    try { await resolveConflict(currentOrganization.id, id, resolution); await load() } finally { setBusy(null) }
   }
 
   return <div className="space-y-6 p-4 sm:p-6">

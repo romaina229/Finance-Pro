@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Activity, CalendarDays, RefreshCw, ShieldCheck } from 'lucide-react'
 import { useOrganization } from '../context/OrganizationContext'
-import { fetchAuditLogs, AuditLog } from '../services/auditLogs'
+import { fetchAuditLogs, type AuditLog } from '../services/auditLogs'
 
 export default function AuditLogs() {
   const { currentOrganization } = useOrganization()
