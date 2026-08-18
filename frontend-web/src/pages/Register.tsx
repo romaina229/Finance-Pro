@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import packageJson from '../../package.json'
 
 export default function Register() {
   const { register } = useAuth()
@@ -16,6 +17,7 @@ export default function Register() {
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const APP_version = packageJson.version
 
   function update(field: keyof typeof form) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -161,7 +163,7 @@ export default function Register() {
         </p>
         
         <div className="text-center text-[10px] finance-text mt-3">
-            <p>v1.5.3</p>
+            <p>v{APP_version}</p>
             <p className="mt-1">
                 © {new Date().getFullYear()} - Finance Pro
             </p>

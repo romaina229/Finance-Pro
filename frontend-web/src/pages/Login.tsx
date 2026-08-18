@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import packageJson from '../../package.json'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -9,6 +10,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const APP_version = packageJson.version
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -80,7 +82,7 @@ export default function Login() {
           </Link>
         </p>
         <div className="text-center text-[12px] finance-text mt-3">
-            <p>v1.5.3</p>
+            <p>v{APP_version}</p>
             <p className="mt-1">
                 © {new Date().getFullYear()} - Finance Pro
             </p>
