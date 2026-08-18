@@ -32,7 +32,7 @@ export default function Expenses() {
 
   const method = paymentMethods.find(m => m.id === form.payment_method_id)
   const needsCash = method?.code === 'cash'
-  const needsBank = ['bank_transfer', 'mobile_money_mtn', 'mobile_money_moov', 'mobile_money_orange'].includes(method?.code ?? '')
+  const needsBank = ['bank_transfer', 'cheque', 'mobile_money_mtn', 'mobile_money_moov', 'mobile_money_orange'].includes(method?.code ?? '')
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault(); if (!currentOrganization) return
