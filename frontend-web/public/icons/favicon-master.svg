@@ -1,5 +1,7 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="112" fill="#78350f"/>
-  <rect width="512" height="512" rx="112" fill="#d97706" fill-opacity="0.85"/>
-  <text x="256" y="340" font-family="Arial, sans-serif" font-size="300" font-weight="700" fill="#fffbeb" text-anchor="middle">F</text>
+  <rect width="512" height="512" rx="112" fill="#0f172a"/>
+  <rect width="512" height="512" rx="112" fill="#1e40af" fill-opacity="0.35"/>
+  <!-- Silhouette pleine du bouclier, sans détail interne : lisible même à 16px -->
+  <path d="M256 86 L384 132 V246 C384 330 330 398 256 428 C182 398 128 330 128 246 V132 Z"
+        fill="#ffffff"/>
 </svg>
