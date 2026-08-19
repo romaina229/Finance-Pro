@@ -27,8 +27,8 @@ jobs:
           cp .env.example .env
           php artisan key:generate
           touch database/database.sqlite
-             sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
-   sed -i "s#^DB_DATABASE=.*#DB_DATABASE=$(pwd)/database/database.sqlite#" .env
+          sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
+          sed -i "s#^DB_DATABASE=.*#DB_DATABASE=$(pwd)/database/database.sqlite#" .env
           php artisan migrate --force
       - name: Run Laravel tests
         run: php artisan test
