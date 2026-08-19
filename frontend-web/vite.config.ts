@@ -16,7 +16,7 @@ export default defineConfig({
       },
       includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'ONG Finance Pro',
+        name: 'Finance Pro',
         short_name: 'Finance Pro',
         description:
           "Gestion financière offline-first pour ONG au Bénin et en Afrique de l'Ouest — projets, dépenses, recettes, caisse, banque, budgets, rapports.",
