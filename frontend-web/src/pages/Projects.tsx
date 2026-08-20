@@ -123,7 +123,7 @@ export default function Projects() {
   return (
     <div className="min-h-screen bg-slate-50">
       <NavBar />
-      <main className="max-w-4xl mx-auto px-6 py-10">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-semibold text-slate-900">Projets</h1>
           <button
