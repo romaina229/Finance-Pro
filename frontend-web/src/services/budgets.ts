@@ -10,6 +10,9 @@ export interface BudgetLine {
   planned_amount: number
   currency: string
   notes: string | null
+  actual: number
+  remaining: number
+  consumption_rate: number
 }
 
 export interface BudgetSummary {
@@ -19,6 +22,7 @@ export interface BudgetSummary {
   actual: number
   remaining: number
   consumption_rate: number
+  unallocated: number
 }
 
 export async function fetchBudgetLines(organizationId: string, projectId: string, year: number) {
@@ -26,12 +30,12 @@ export async function fetchBudgetLines(organizationId: string, projectId: string
   return { lines: data.data as BudgetLine[], summary: data.summary as BudgetSummary }
 }
 
-export async function createBudgetLine(organizationId: string, projectId: string, payload: Omit<BudgetLine, 'id'|'project_id'|'category'>) {
+export async function createBudgetLine(organizationId: string, projectId: string, payload: Omit<BudgetLine, 'id'|'project_id'|'category'|'actual'|'remaining'|'consumption_rate'>) {
   const { data } = await api.post(`/organizations/${organizationId}/projects/${projectId}/budget-lines`, payload)
   return data.data as BudgetLine
 }
 
-export async function updateBudgetLine(organizationId: string, projectId: string, lineId: string, payload: Partial<Omit<BudgetLine, 'id'|'project_id'|'category'>>) {
+export async function updateBudgetLine(organizationId: string, projectId: string, lineId: string, payload: Partial<Omit<BudgetLine, 'id'|'project_id'|'category'|'actual'|'remaining'|'consumption_rate'>>) {
   const { data } = await api.put(`/organizations/${organizationId}/projects/${projectId}/budget-lines/${lineId}`, payload)
   return data.data as BudgetLine
 }

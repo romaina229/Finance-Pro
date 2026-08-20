@@ -18,10 +18,34 @@ class BudgetLineController extends Controller
     {
         $this->ensureProject($project, $organization->id);
         $year = $request->integer('year', now()->year);
-        $lines = BudgetLine::query()->where('organization_id', $organization->id)->where('project_id', $project->id)->where('fiscal_year', $year)->with('category:id,code,name')->orderBy('label')->get()->map(fn (BudgetLine $line) => $this->payload($line));
+        $lines = BudgetLine::query()->where('organization_id', $organization->id)->where('project_id', $project->id)->where('fiscal_year', $year)->with('category:id,code,name')->orderBy('label')->get();
+
+        // Consommation réelle PAR ligne budgétaire, via le lien direct expenses.budget_line_id
+        // (auparavant, seule une somme globale au projet était possible : aucune dépense
+        // n'était jamais rattachée à une ligne précise).
+        $actualByLine = Expense::query()
+            ->where('organization_id', $organization->id)
+            ->where('project_id', $project->id)
+            ->whereIn('budget_line_id', $lines->pluck('id'))
+            ->whereIn('status', ['approved', 'paid'])
+            ->groupBy('budget_line_id')
+            ->selectRaw('budget_line_id, SUM(amount_in_org_currency) as total')
+            ->pluck('total', 'budget_line_id');
+
+        $linesPayload = $lines->map(function (BudgetLine $line) use ($actualByLine) {
+            $actual = (float) ($actualByLine[$line->id] ?? 0);
+            return $this->payload($line, $actual);
+        });
+
         $planned = (float) $lines->sum('planned_amount');
+        // Le total "actual" du projet reste la somme de TOUTES les dépenses du projet
+        // (y compris celles non rattachées à une ligne précise), pour ne pas perdre de
+        // visibilité sur les dépenses "non affectées" — mais chaque ligne affiche
+        // désormais sa propre consommation réelle et fiable.
         $actual = (float) Expense::query()->where('organization_id', $organization->id)->where('project_id', $project->id)->whereYear('expense_date', $year)->whereIn('status', ['approved', 'paid'])->sum('amount_in_org_currency');
-        return response()->json(['data' => $lines, 'summary' => ['year' => $year, 'project_budget' => (float) $project->total_budget, 'planned' => round($planned, 2), 'actual' => round($actual, 2), 'remaining' => round($planned - $actual, 2), 'consumption_rate' => $planned > 0 ? round(($actual / $planned) * 100, 1) : 0]]);
+        $unallocated = round($actual - (float) $actualByLine->sum(), 2);
+
+        return response()->json(['data' => $linesPayload, 'summary' => ['year' => $year, 'project_budget' => (float) $project->total_budget, 'planned' => round($planned, 2), 'actual' => round($actual, 2), 'remaining' => round($planned - $actual, 2), 'consumption_rate' => $planned > 0 ? round(($actual / $planned) * 100, 1) : 0, 'unallocated' => $unallocated]]);
     }
 
     public function store(Request $request, Organization $organization, Project $project): JsonResponse
@@ -56,9 +80,10 @@ class BudgetLineController extends Controller
         return response()->json(['message' => 'Ligne budgétaire supprimée.']);
     }
 
-    private function payload(BudgetLine $line): array
+    private function payload(BudgetLine $line, float $actual = 0): array
     {
-        return ['id' => $line->id, 'project_id' => $line->project_id, 'category_id' => $line->category_id, 'category' => $line->category ? ['id' => $line->category->id, 'code' => $line->category->code, 'name' => $line->category->name] : null, 'fiscal_year' => $line->fiscal_year, 'label' => $line->label, 'planned_amount' => (float) $line->planned_amount, 'currency' => $line->currency, 'notes' => $line->notes];
+        $planned = (float) $line->planned_amount;
+        return ['id' => $line->id, 'project_id' => $line->project_id, 'category_id' => $line->category_id, 'category' => $line->category ? ['id' => $line->category->id, 'code' => $line->category->code, 'name' => $line->category->name] : null, 'fiscal_year' => $line->fiscal_year, 'label' => $line->label, 'planned_amount' => $planned, 'currency' => $line->currency, 'notes' => $line->notes, 'actual' => round($actual, 2), 'remaining' => round($planned - $actual, 2), 'consumption_rate' => $planned > 0 ? round(($actual / $planned) * 100, 1) : 0];
     }
 
     private function ensureProject(Project $project, string $organizationId): void { abort_unless($project->organization_id === $organizationId, 404); }
