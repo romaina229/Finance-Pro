@@ -82,10 +82,7 @@ export default function Login() {
           </Link>
         </p>
         <div className="text-center text-[12px] finance-text mt-3">
-            <p>v{APP_version}</p>
-            <p className="mt-1">
-                © {new Date().getFullYear()} - Finance Pro
-            </p>
+            <p>Version: {APP_version}</p>
         </div>
       </div>
     </div>
