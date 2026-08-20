@@ -13,7 +13,7 @@ class Expense extends Model
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
-        'organization_id', 'project_id', 'category_id', 'amount', 'currency', 'amount_in_org_currency',
+        'organization_id', 'project_id', 'category_id', 'budget_line_id', 'amount', 'currency', 'amount_in_org_currency',
         'supplier_name', 'supplier_contact', 'payment_method_id', 'cash_register_id', 'bank_account_id',
         'payment_reference', 'expense_date', 'description', 'status', 'created_by', 'submitted_at',
         'approved_by', 'approved_at', 'rejection_reason',
@@ -27,6 +27,7 @@ class Expense extends Model
     public function organization(): BelongsTo { return $this->belongsTo(Organization::class); }
     public function project(): BelongsTo { return $this->belongsTo(Project::class); }
     public function category(): BelongsTo { return $this->belongsTo(ExpenseCategory::class, 'category_id'); }
+    public function budgetLine(): BelongsTo { return $this->belongsTo(BudgetLine::class); }
     public function paymentMethod(): BelongsTo { return $this->belongsTo(PaymentMethod::class); }
     public function creator(): BelongsTo { return $this->belongsTo(User::class, 'created_by'); }
     public function approver(): BelongsTo { return $this->belongsTo(User::class, 'approved_by'); }

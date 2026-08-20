@@ -8,6 +8,8 @@ export interface Expense {
   project?: { id: string; name: string; code: string }
   category_id: string | null
   category?: { id: string; name: string; code: string | null } | null
+  budget_line_id?: string | null
+  budget_line?: { id: string; label: string } | null
   amount: string
   currency: string
   supplier_name: string | null
@@ -29,6 +31,7 @@ export interface Expense {
 export interface ExpensePayload {
   project_id: string
   category_id?: string | null
+  budget_line_id?: string | null
   amount: number
   currency?: string
   supplier_name?: string

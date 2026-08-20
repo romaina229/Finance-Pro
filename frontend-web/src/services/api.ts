@@ -39,8 +39,22 @@ api.interceptors.response.use(
         const headers: Record<string, string> = {}
         const authorization = config.headers?.Authorization
         if (typeof authorization === 'string') headers.Authorization = authorization
-        await enqueueMutation({ id: mutationId(), method, url: config.url ?? '', data: config.data, headers, createdAt: new Date().toISOString(), attempts: 0 })
-        return { data: { queued: true, offline: true }, status: 202, statusText: 'Accepted (hors ligne)', headers: {}, config } as AxiosResponse
+        const mid = mutationId()
+        await enqueueMutation({ id: mid, method, url: config.url ?? '', data: config.data, headers, createdAt: new Date().toISOString(), attempts: 0 })
+
+        // Auparavant : { data: { queued: true } } — tout code appelant
+        // `return data.data as X` recevait `undefined`, sans jamais planter,
+        // donc l'écriture créée hors ligne restait invisible jusqu'à la sync
+        // (voir services/*.ts qui font tous `const { data } = await api.post(...);
+        // return data.data as X`). On synthétise ici un objet exploitable à
+        // partir du payload soumis, marqué _offlineQueued, pour que les pages
+        // puissent l'insérer optimistiquement dans leur liste locale.
+        let payload: Record<string, unknown> = {}
+        if (typeof config.data === 'string') { try { payload = JSON.parse(config.data) } catch { payload = {} } }
+        else if (config.data && typeof config.data === 'object') payload = config.data as Record<string, unknown>
+
+        const synthesized = { id: `offline-${mid}`, ...payload, status: (payload as any).status ?? 'draft', _offlineQueued: true }
+        return { data: { data: synthesized, message: 'En attente de synchronisation.' }, status: 202, statusText: 'Accepted (hors ligne)', headers: {}, config } as AxiosResponse
       }
     }
     return Promise.reject(error)

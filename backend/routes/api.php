@@ -78,14 +78,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('banks/{bankAccount}/reconciliations', [\App\Http\Controllers\Api\BankController::class, 'reconcile'])->middleware('permission:bank.manage');
         Route::apiResource('documents', DocumentController::class)->only(['index', 'store', 'show', 'destroy']);
         Route::get('documents/{document}/download', [DocumentController::class, 'download']);
-        Route::get('reports', [ReportController::class, 'summary']);
-        Route::post('reports/generate', [ReportController::class, 'summary']);
-        Route::get('audit-logs', [AuditLogController::class, 'index']);
+        Route::get('reports', [ReportController::class, 'summary'])->middleware('permission:reports.view');
+        Route::post('reports/generate', [ReportController::class, 'summary'])->middleware('permission:reports.export');
+        Route::get('audit-logs', [AuditLogController::class, 'index'])->middleware('permission:audit.view');
         Route::get('sync/conflicts', [SyncConflictController::class, 'index']);
         Route::post('sync/conflicts', [SyncConflictController::class, 'store']);
         Route::post('sync/conflicts/{conflict}/resolve', [SyncConflictController::class, 'resolve']);
-        Route::get('mobile-money-transactions', fn () => null);
-        Route::post('mobile-money-transactions/{transaction}/reconcile', fn () => null);
     });
 
     Route::prefix('sync')->group(function () {
