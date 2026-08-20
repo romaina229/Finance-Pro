@@ -14,6 +14,8 @@ use App\Http\Middleware\AuditTrail;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
+Route::get('/auth/invitations/{token}', [AuthController::class, 'showInvitation']);
+Route::post('/auth/invitations/{token}/accept', [AuthController::class, 'acceptInvitation']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);

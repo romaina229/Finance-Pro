@@ -8,6 +8,7 @@ export interface Member {
   role: { id: number; code: string; name: string } | null
   is_primary: boolean
   status: 'active' | 'suspended' | 'invited'
+  account_status: 'active' | 'suspended' | 'invited'
 }
 
 export interface RoleOption {
@@ -32,7 +33,7 @@ export async function inviteMember(
   payload: { email: string; full_name?: string; role_code: string }
 ) {
   const { data } = await api.post(`/organizations/${organizationId}/users`, payload)
-  return data.data
+  return { member: data.data as Member, invitationLink: data.invitation_link as string | null }
 }
 
 export async function updateMember(

@@ -20,15 +20,19 @@ class User extends Authenticatable
         'password',
         'preferred_language',
         'status',
+        'invitation_token',
+        'invitation_expires_at',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        'invitation_token',
     ];
 
     protected $casts = [
         'last_login_at' => 'datetime',
+        'invitation_expires_at' => 'datetime',
         'password' => 'hashed',
     ];
 

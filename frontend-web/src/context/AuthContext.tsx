@@ -7,6 +7,7 @@ interface AuthContextValue {
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<void>
   register: (payload: authService.RegisterPayload) => Promise<void>
+  acceptInvitation: (token: string, password: string, passwordConfirmation: string) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -25,6 +26,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user)
   }
 
+  async function acceptInvitation(token: string, password: string, passwordConfirmation: string) {
+    const data = await authService.acceptInvitation(token, password, passwordConfirmation)
+    setUser(data.user)
+  }
+
   async function logout() {
     await authService.logout()
     setUser(null)
@@ -32,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: Boolean(user), login, register, logout }}
+      value={{ user, isAuthenticated: Boolean(user), login, register, acceptInvitation, logout }}
     >
       {children}
     </AuthContext.Provider>
