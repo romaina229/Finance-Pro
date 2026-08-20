@@ -85,7 +85,7 @@ export default function Members() {
   return (
     <div className="min-h-screen bg-slate-50">
       <NavBar />
-      <main className="max-w-3xl mx-auto px-6 py-10">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <h1 className="text-2xl font-semibold text-slate-900 mb-6">Membres de l'organisation</h1>
 
         {error && (
