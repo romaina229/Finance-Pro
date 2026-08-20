@@ -22,6 +22,8 @@ export default function Members() {
   const [inviteName, setInviteName] = useState('')
   const [inviteRole, setInviteRole] = useState('')
   const [inviting, setInviting] = useState(false)
+  const [invitationLink, setInvitationLink] = useState<string | null>(null)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   async function loadData() {
     if (!currentOrganization) return
@@ -49,20 +51,31 @@ export default function Members() {
     if (!currentOrganization) return
     setInviting(true)
     setError(null)
+    setInvitationLink(null)
+    setLinkCopied(false)
     try {
-      await inviteMember(currentOrganization.id, {
+      const { invitationLink: link } = await inviteMember(currentOrganization.id, {
         email: inviteEmail,
         full_name: inviteName || undefined,
         role_code: inviteRole,
       })
       setInviteEmail('')
       setInviteName('')
+      if (link) setInvitationLink(link)
       await loadData()
     } catch (err: any) {
       setError(err.response?.data?.message ?? "Impossible d'ajouter ce membre.")
     } finally {
       setInviting(false)
     }
+  }
+
+  function copyInvitationLink() {
+    if (!invitationLink) return
+    navigator.clipboard.writeText(invitationLink).then(() => {
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    })
   }
 
   async function handleRoleChange(userId: string, roleCode: string) {
@@ -91,6 +104,32 @@ export default function Members() {
         {error && (
           <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
             {error}
+          </div>
+        )}
+
+        {invitationLink && (
+          <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-3">
+            <p className="text-sm text-blue-900 font-medium mb-1.5">
+              Membre ajouté — partagez ce lien pour qu'il puisse activer son compte
+            </p>
+            <p className="text-xs text-blue-700 mb-2">
+              Aucun e-mail n'est envoyé automatiquement pour l'instant : copiez ce lien et
+              transmettez-le vous-même (SMS, WhatsApp...). Il expire dans 7 jours.
+            </p>
+            <div className="flex items-center gap-2">
+              <input
+                readOnly
+                value={invitationLink}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+                className="flex-1 rounded-md border border-blue-300 bg-white px-3 py-1.5 text-xs text-slate-700"
+              />
+              <button
+                onClick={copyInvitationLink}
+                className="whitespace-nowrap rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+              >
+                {linkCopied ? 'Copié !' : 'Copier'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -171,7 +210,20 @@ export default function Members() {
                         ))}
                       </select>
                     </td>
-                    <td className="px-4 py-2 text-slate-600">{m.status}</td>
+                    <td className="px-4 py-2">
+                      <span className={`rounded-full px-2 py-1 text-xs font-medium ${
+                        m.account_status === 'active' ? 'bg-green-100 text-green-700'
+                        : m.account_status === 'invited' ? 'bg-amber-100 text-amber-700'
+                        : 'bg-slate-100 text-slate-500'
+                      }`}>
+                        {m.account_status === 'active' ? 'Actif' : m.account_status === 'invited' ? 'Invitation en attente' : 'Suspendu'}
+                      </span>
+                      {m.status === 'suspended' && (
+                        <span className="ml-1.5 rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-600">
+                          Accès suspendu
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-2 text-right">
                       {!m.is_primary && (
                         <button

@@ -7,6 +7,7 @@ import OfflineStatus from './components/OfflineStatus'
 import { startOfflineSync } from './services/offlineSync'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import AcceptInvitation from './pages/AcceptInvitation'
 import Dashboard from './pages/Dashboard'
 import OrganizationSettings from './pages/OrganizationSettings'
 import Members from './pages/Members'
@@ -29,6 +30,7 @@ export default function App() {
   useEffect(() => startOfflineSync(), [])
   return <AuthProvider><BrowserRouter><OfflineStatus /><Routes>
     <Route path="/login" element={<Login />} /><Route path="/register" element={<Register />} />
+    <Route path="/invitation/:token" element={<AcceptInvitation />} />
     <Route path="/" element={<ProtectedArea><Dashboard /></ProtectedArea>} />
     <Route path="/organization" element={<ProtectedArea><OrganizationSettings /></ProtectedArea>} />
     <Route path="/members" element={<ProtectedArea><Members /></ProtectedArea>} />
