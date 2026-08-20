@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FileText, Upload, Download, Trash2, Search, RefreshCw } from 'lucide-react'
+import { NavBar } from '../components/NavBar'
 import { useOrganization } from '../context/OrganizationContext'
 import { formatDate } from '../utils/date'
 import { deleteDocument, documentDownloadUrl, type DocumentItem, fetchDocuments, uploadDocument } from '../services/documents'
@@ -50,11 +51,13 @@ export default function Documents() {
     catch (e: any) { setError(e?.response?.data?.message || 'Suppression impossible.') }
   }
 
-  if (!organizationId) return <div className="p-6 text-slate-600">Aucune organisation active.</div>
+  if (!organizationId) return <div className="min-h-screen bg-slate-50"><NavBar /><div className="px-4 pt-24 text-slate-600 lg:ml-[var(--finance-sidebar-width)] lg:px-8">Aucune organisation active.</div></div>
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 md:p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
+    <div className="min-h-screen bg-slate-50">
+      <NavBar />
+      <main className="min-h-screen px-4 pb-10 pt-24 sm:px-6 lg:ml-[var(--finance-sidebar-width)] lg:px-8">
+        <div className="mx-auto max-w-7xl space-y-6">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-medium text-slate-500">DOCUMENTS</p>
@@ -91,7 +94,8 @@ export default function Documents() {
         </section>
 
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5"><label className="text-sm font-semibold text-slate-700">Description du prochain document</label><input value={description} onChange={e => setDescription(e.target.value)} placeholder="Ex. Facture fournisseur janvier 2026" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-400" /></div>
-      </div>
-    </main>
+        </div>
+      </main>
+    </div>
   )
 }
