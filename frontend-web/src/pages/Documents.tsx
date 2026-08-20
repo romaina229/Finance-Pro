@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { FileText, Upload, Download, Trash2, Search, RefreshCw } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { FileText, Upload, Download, Trash2, Search, RefreshCw, ArrowLeft } from 'lucide-react'
 import { NavBar } from '../components/NavBar'
 import { useOrganization } from '../context/OrganizationContext'
 import { formatDate } from '../utils/date'
@@ -60,6 +61,9 @@ export default function Documents() {
         <div className="mx-auto max-w-7xl space-y-6">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
+            <Link to="/" className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900">
+              <ArrowLeft size={16} /> Retour au tableau de bord
+            </Link>
             <p className="text-sm font-medium text-slate-500">DOCUMENTS</p>
             <h1 className="text-2xl font-bold text-slate-900">Pièces justificatives</h1>
             <p className="mt-1 text-sm text-slate-500">Centralisez les factures, reçus, contrats et autres justificatifs de l’organisation.</p>
