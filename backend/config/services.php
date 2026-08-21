@@ -35,4 +35,20 @@ return [
         ],
     ],
 
+    // --- Paiement du forfait mensuel (voir app/Services/Payments) ---
+
+    'feedapay' => [
+        'api_key' => env('FEEDAPAY_API_KEY'),
+        'webhook_secret' => env('FEEDAPAY_WEBHOOK_SECRET'),
+        'base_url' => env('FEEDAPAY_BASE_URL', 'https://api.feedapay.com/v1'),
+    ],
+
+    'mtn_momo' => [
+        'subscription_key' => env('MTN_MOMO_SUBSCRIPTION_KEY'),
+        'api_user' => env('MTN_MOMO_API_USER'),
+        'api_key' => env('MTN_MOMO_API_KEY'),
+        'environment' => env('MTN_MOMO_ENVIRONMENT', 'sandbox'),
+        'base_url' => env('MTN_MOMO_BASE_URL', 'https://sandbox.momodeveloper.mtn.com'),
+    ],
+
 ];

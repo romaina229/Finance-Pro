@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\SuperAdmin;
 use App\Models\User;
 
 return [
@@ -42,6 +43,15 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Guard totalement séparé : un jeton Sanctum de super admin ne
+        // fonctionnera jamais sur les routes /api/organizations/{organization}/...
+        // (qui utilisent le guard 'sanctum' par défaut, provider 'users'),
+        // et inversement. Voir routes/api.php pour le groupe /super-admin/*.
+        'super_admin' => [
+            'driver' => 'sanctum',
+            'provider' => 'super_admins',
+        ],
     ],
 
     /*
@@ -65,6 +75,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'super_admins' => [
+            'driver' => 'eloquent',
+            'model' => SuperAdmin::class,
         ],
 
         // 'users' => [

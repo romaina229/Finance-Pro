@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
             ? 'App\\Http\\Middleware\\EnsureOrganizationAccess'
             : null,
 
+        'org.billing' => class_exists('App\\Http\\Middleware\\EnsureOrganizationBilling')
+            ? 'App\\Http\\Middleware\\EnsureOrganizationBilling'
+            : null,
+
         'permission' => class_exists('App\\Http\\Middleware\\EnsurePermission')
             ? 'App\\Http\\Middleware\\EnsurePermission'
             : null,
