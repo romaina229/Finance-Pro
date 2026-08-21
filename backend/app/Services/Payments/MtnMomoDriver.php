@@ -27,7 +27,7 @@ class MtnMomoDriver implements PaymentGatewayDriver
         if (! $subscriptionKey) {
             throw new \RuntimeException(
                 "Intégration MTN Mobile Money directe non configurée (MTN_MOMO_SUBSCRIPTION_KEY manquant). " .
-                "Utilisez FeedaPay en attendant, ou complétez ce driver avec vos identifiants MTN Developer Portal."
+                "Utilisez fedapay en attendant, ou complétez ce driver avec vos identifiants MTN Developer Portal."
             );
         }
 

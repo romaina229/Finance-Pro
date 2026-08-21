@@ -12,7 +12,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('invoice_id');
             $table->uuid('organization_id');
-            $table->enum('provider', ['feedapay', 'mtn', 'moov', 'orange']);
+            $table->enum('provider', ['fedapay', 'mtn', 'moov', 'orange']);
             $table->string('provider_transaction_id')->nullable(); // renseigné à la confirmation opérateur
             $table->string('phone_number', 20);
             $table->decimal('amount', 18, 2);

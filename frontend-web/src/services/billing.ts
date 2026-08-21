@@ -11,7 +11,7 @@ export interface Invoice {
   paid_at: string | null
 }
 
-export type PaymentProvider = 'feedapay' | 'mtn' | 'moov' | 'orange'
+export type PaymentProvider = 'fedapay' | 'mtn' | 'moov' | 'orange'
 
 export async function fetchInvoices(organizationId: string) {
   const { data } = await api.get(`/organizations/${organizationId}/invoices`)

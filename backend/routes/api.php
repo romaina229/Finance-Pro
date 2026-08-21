@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\SyncConflictController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Middleware\AuditTrail;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
@@ -22,7 +23,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::get('/organizations', [OrganizationController::class, 'index']);
 
-    Route::middleware(['org.access', AuditTrail::class])->prefix('organizations/{organization}')->group(function () {
+    Route::middleware(['org.access'])->prefix('organizations/{organization}')->group(function () {
+        // Factures et paiement du forfait : volontairement EN DEHORS de
+        // org.billing (voir EnsureOrganizationBilling) — une organisation
+        // bloquée pour impayé doit toujours pouvoir consulter et régler sa
+        // facture pour se débloquer elle-même.
+        Route::get('invoices', [PaymentController::class, 'invoices']);
+        Route::post('invoices/{invoice}/pay', [PaymentController::class, 'initiate']);
+    });
+
+    Route::middleware(['org.access', 'org.billing', AuditTrail::class])->prefix('organizations/{organization}')->group(function () {
         Route::get('/', [OrganizationController::class, 'show']);
         Route::match(['put', 'patch'], '/', [OrganizationController::class, 'update'])->middleware('permission:organizations.manage');
         Route::get('users', [UserController::class, 'index']);

@@ -39,7 +39,7 @@ class PaymentController extends Controller
 
     /**
      * Démarre un paiement Mobile Money pour une facture en attente.
-     * provider = 'feedapay' (recommandé) | 'mtn' | 'moov' | 'orange'
+     * provider = 'fedapay' (recommandé) | 'mtn' | 'moov' | 'orange'
      */
     public function initiate(Request $request, Organization $organization, Invoice $invoice)
     {
@@ -50,7 +50,7 @@ class PaymentController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'provider' => ['required', 'in:feedapay,mtn,moov,orange'],
+            'provider' => ['required', 'in:fedapay,mtn,moov,orange'],
             'phone_number' => ['required', 'string', 'max:20'],
         ]);
         if ($validator->fails()) {

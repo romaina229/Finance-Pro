@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
  * OAuth2 (client_credentials) puis création d'une transaction de paiement
  * avec redirection vers une page Orange. Complétez ce driver une fois vos
  * identifiants Orange Developer Center (merchant key, OAuth client)
- * obtenus. En attendant, utilisez FeedaPay qui agrège déjà Orange Money
+ * obtenus. En attendant, utilisez fedapay qui agrège déjà Orange Money
  * dans plusieurs pays.
  */
 class OrangeMoneyDriver implements PaymentGatewayDriver
@@ -18,7 +18,7 @@ class OrangeMoneyDriver implements PaymentGatewayDriver
     public function initiate(Payment $payment, string $phoneNumber): array
     {
         throw new \RuntimeException(
-            "Intégration Orange Money directe non implémentée — utilisez FeedaPay, " .
+            "Intégration Orange Money directe non implémentée — utilisez fedapay, " .
             "ou complétez ce driver avec vos identifiants Orange Developer Center."
         );
     }

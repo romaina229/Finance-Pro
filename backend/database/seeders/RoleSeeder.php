@@ -10,7 +10,7 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         $roles = [
-            ['code' => 'super_admin',     'name' => 'Super administrateur plateforme',      'hierarchy_level' => 100],
+            //['code' => 'super_admin',     'name' => 'Super administrateur plateforme',      'hierarchy_level' => 100],
             ['code' => 'org_admin',       'name' => 'Administrateur ONG',                   'hierarchy_level' => 90],
             ['code' => 'coordinator',     'name' => 'Coordinateur national',                'hierarchy_level' => 80],
             ['code' => 'auditor',         'name' => 'Auditeur / Commissaire aux comptes',   'hierarchy_level' => 70],

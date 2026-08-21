@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
  * l'intégrateur retenu (souvent via un partenaire technique local plutôt
  * qu'une API publique unique comme MTN). Complétez ce driver une fois
  * votre contrat marchand Moov Africa signé et leur documentation
- * d'intégration en main. En attendant, utilisez FeedaPay qui agrège déjà
+ * d'intégration en main. En attendant, utilisez fedapay qui agrège déjà
  * Moov Money dans plusieurs pays d'Afrique de l'Ouest.
  */
 class MoovMoneyDriver implements PaymentGatewayDriver
@@ -18,7 +18,7 @@ class MoovMoneyDriver implements PaymentGatewayDriver
     public function initiate(Payment $payment, string $phoneNumber): array
     {
         throw new \RuntimeException(
-            "Intégration Moov Money directe non implémentée — utilisez FeedaPay, " .
+            "Intégration Moov Money directe non implémentée — utilisez fedapay, " .
             "ou complétez ce driver avec la documentation fournie par votre contrat marchand Moov Africa."
         );
     }

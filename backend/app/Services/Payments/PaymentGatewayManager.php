@@ -7,7 +7,7 @@ class PaymentGatewayManager
     public function driver(string $provider): PaymentGatewayDriver
     {
         return match ($provider) {
-            'feedapay' => new FeedaPayDriver(),
+            'fedapay' => new FeedaPayDriver(),
             'mtn' => new MtnMomoDriver(),
             'moov' => new MoovMoneyDriver(),
             'orange' => new OrangeMoneyDriver(),

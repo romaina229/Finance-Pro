@@ -6,7 +6,7 @@ use App\Models\Payment;
 use Illuminate\Http\Request;
 
 /**
- * Interface commune à FeedaPay (agrégateur, recommandé) et aux opérateurs
+ * Interface commune à fedapay (agrégateur, recommandé) et aux opérateurs
  * directs (MTN, Moov, Orange). Chaque driver encapsule les particularités
  * de l'API du fournisseur ; le reste de l'application (PaymentController)
  * ne connaît que cette interface.
@@ -16,7 +16,7 @@ interface PaymentGatewayDriver
     /**
      * Démarre une transaction de paiement. Retourne un tableau avec au
      * minimum 'provider_transaction_id' et, si le fournisseur fonctionne
-     * par redirection (FeedaPay), 'checkout_url'.
+     * par redirection (fedapay), 'checkout_url'.
      */
     public function initiate(Payment $payment, string $phoneNumber): array;
 

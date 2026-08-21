@@ -65,6 +65,17 @@ export async function updateMutation(mutation: OfflineMutation) {
   await withStore(QUEUE_STORE, 'readwrite', store => store.put(mutation))
 }
 
+/**
+ * Vide entièrement la file de mutations en attente, sans les rejouer.
+ * Utile quand des mutations restent bloquées (ex. jeton devenu invalide
+ * après une réinitialisation côté serveur) et boucleraient sinon
+ * indéfiniment en échec. Les écritures correspondantes sont perdues :
+ * l'utilisateur doit être prévenu avant confirmation côté UI.
+ */
+export async function clearMutations(): Promise<void> {
+  await withStore(QUEUE_STORE, 'readwrite', store => store.clear())
+}
+
 export function mutationId() { return crypto.randomUUID() }
 
 export function isOffline() { return typeof navigator !== 'undefined' && !navigator.onLine }

@@ -37,10 +37,10 @@ return [
 
     // --- Paiement du forfait mensuel (voir app/Services/Payments) ---
 
-    'feedapay' => [
-        'api_key' => env('FEEDAPAY_API_KEY'),
-        'webhook_secret' => env('FEEDAPAY_WEBHOOK_SECRET'),
-        'base_url' => env('FEEDAPAY_BASE_URL', 'https://api.feedapay.com/v1'),
+    'Fedapay' => [
+    'api_key' => env('FEDAPAY_API_KEY'),
+    'webhook_secret' => env('FEDAPAY_WEBHOOK_SECRET'),
+    'base_url' => env('FEDAPAY_BASE_URL', 'https://api.fedapay.com/v1'),
     ],
 
     'mtn_momo' => [

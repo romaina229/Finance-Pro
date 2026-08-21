@@ -36,7 +36,7 @@ class Organization extends Model
     public function accessBlockedReason(): ?string
     {
         if ($this->approval_status === 'pending') {
-            return "Votre organisation est en attente de validation par l'administrateur de la plateforme.";
+            return "Votre organisation est en attente de validation par l’administrateur de la plateforme. Si votre organisation n’a pas été validée après 1 heure, veuillez contacter le service au +229 01 44 95 83 83.";
         }
         if ($this->approval_status === 'rejected') {
             return "L'inscription de votre organisation n'a pas été validée." . ($this->rejection_reason ? " Motif : {$this->rejection_reason}" : '');

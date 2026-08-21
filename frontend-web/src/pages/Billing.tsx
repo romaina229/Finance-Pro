@@ -4,7 +4,7 @@ import { useOrganization } from '../context/OrganizationContext'
 import { fetchInvoices, payInvoice, type Invoice, type PaymentProvider } from '../services/billing'
 
 const PROVIDERS: { value: PaymentProvider; label: string; recommended?: boolean }[] = [
-  { value: 'feedapay', label: 'FeedaPay (Mobile Money & carte)', recommended: true },
+  { value: 'fedapay', label: 'Fedapay', recommended: true },
   { value: 'mtn', label: 'MTN Mobile Money (direct)' },
   { value: 'moov', label: 'Moov Money (direct)' },
   { value: 'orange', label: 'Orange Money (direct)' },
@@ -16,7 +16,7 @@ export default function Billing() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [payingInvoice, setPayingInvoice] = useState<Invoice | null>(null)
-  const [provider, setProvider] = useState<PaymentProvider>('feedapay')
+  const [provider, setProvider] = useState<PaymentProvider>('fedapay')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [paymentMessage, setPaymentMessage] = useState<string | null>(null)
@@ -67,7 +67,8 @@ export default function Billing() {
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <h1 className="text-2xl font-semibold text-slate-900 mb-1">Facturation</h1>
         <p className="text-sm text-slate-500 mb-6">
-          Forfait mensuel Finance Pro — échéance le 5 de chaque mois.
+          Forfait mensuel Finance Pro — échéance le 5 de chaque mois.<br/>
+          <strong>Note</strong> : Actuellement nous somme en prix promotionnel à partir <strong>01 Janvier 2027</strong> nous passerons à <strong>12 500 Fcfa</strong> l'abonnement mensuel.
         </p>
 
         {error && (
