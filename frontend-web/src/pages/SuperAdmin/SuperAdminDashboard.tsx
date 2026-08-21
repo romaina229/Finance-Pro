@@ -1,0 +1,235 @@
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useSuperAdminAuth } from '../../context/SuperAdminAuthContext'
+import {
+  fetchDashboard,
+  fetchOrganizations,
+  approveOrganization,
+  rejectOrganization,
+  suspendOrganization,
+  reactivateOrganization,
+  type AdminOrganization,
+} from '../../services/superAdmin'
+
+type ApprovalFilter = '' | 'pending' | 'approved' | 'rejected'
+
+const STATUS_LABELS: Record<AdminOrganization['approval_status'], string> = {
+  pending: 'En attente',
+  approved: 'Validée',
+  rejected: 'Rejetée',
+}
+const STATUS_COLORS: Record<AdminOrganization['approval_status'], string> = {
+  pending: 'bg-amber-100 text-amber-700',
+  approved: 'bg-green-100 text-green-700',
+  rejected: 'bg-red-100 text-red-700',
+}
+
+export default function SuperAdminDashboard() {
+  const { admin, logout } = useSuperAdminAuth()
+  const navigate = useNavigate()
+
+  const [stats, setStats] = useState<Awaited<ReturnType<typeof fetchDashboard>> | null>(null)
+  const [organizations, setOrganizations] = useState<AdminOrganization[]>([])
+  const [filter, setFilter] = useState<ApprovalFilter>('pending')
+  const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
+
+  async function load() {
+    setLoading(true)
+    setError(null)
+    try {
+      const [dashboardStats, orgs] = await Promise.all([fetchDashboard(), fetchOrganizations(filter, search)])
+      setStats(dashboardStats)
+      setOrganizations(orgs)
+    } catch (err: any) {
+      setError(err.response?.data?.message ?? 'Impossible de charger les données.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter])
+
+  async function handleLogout() {
+    await logout()
+    navigate('/super-admin/login')
+  }
+
+  async function runAction(id: string, action: () => Promise<AdminOrganization>) {
+    setBusyId(id)
+    setError(null)
+    try {
+      const updated = await action()
+      setOrganizations((list) => list.map((o) => (o.id === id ? updated : o)))
+      // Les stats globales (compteurs pending/approved) doivent se rafraîchir aussi
+      fetchDashboard().then(setStats).catch(() => {})
+    } catch (err: any) {
+      setError(err.response?.data?.message ?? 'Action impossible.')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  function handleReject(id: string) {
+    const reason = prompt("Motif du rejet (visible par l'organisation) :")
+    if (!reason) return
+    runAction(id, () => rejectOrganization(id, reason))
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="border-b border-slate-200 bg-slate-950 px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-500">Espace plateforme</p>
+            <h1 className="text-lg font-semibold text-white">Super Admin — ONG Finance Pro</h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-slate-400">{admin?.full_name}</span>
+            <button onClick={handleLogout} className="text-sm text-slate-400 hover:text-white">
+              Déconnexion
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-6 py-8">
+        {error && (
+          <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        {stats && (
+          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <StatCard label="Organisations" value={stats.organizations.total} />
+            <StatCard label="En attente de validation" value={stats.organizations.pending} accent="amber" />
+            <StatCard label="Factures en retard" value={stats.invoices.overdue_count} accent="red" />
+            <StatCard
+              label="Encaissé ce mois"
+              value={`${Number(stats.invoices.paid_this_month).toLocaleString('fr-FR')} FCFA`}
+              accent="green"
+            />
+          </div>
+        )}
+
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          {(['pending', 'approved', 'rejected', ''] as ApprovalFilter[]).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
+                filter === f ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 text-slate-600'
+              }`}
+            >
+              {f === '' ? 'Toutes' : STATUS_LABELS[f]}
+            </button>
+          ))}
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && load()}
+            placeholder="Rechercher une organisation..."
+            className="ml-auto rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+          />
+        </div>
+
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          {loading ? (
+            <p className="p-6 text-sm text-slate-500">Chargement...</p>
+          ) : organizations.length === 0 ? (
+            <p className="p-8 text-center text-sm text-slate-400">Aucune organisation.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-400">
+                <tr>
+                  <th className="px-4 py-3">Organisation</th>
+                  <th className="px-4 py-3">Pays</th>
+                  <th className="px-4 py-3">Membres</th>
+                  <th className="px-4 py-3">Projets</th>
+                  <th className="px-4 py-3">Statut</th>
+                  <th className="px-4 py-3">Accès</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {organizations.map((org) => (
+                  <tr key={org.id} className="border-t border-slate-100">
+                    <td className="px-4 py-3 font-medium text-slate-900">
+                      {org.name} {org.acronym && <span className="text-slate-400">({org.acronym})</span>}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">{org.country}</td>
+                    <td className="px-4 py-3 text-slate-600">{org.users_count}</td>
+                    <td className="px-4 py-3 text-slate-600">{org.projects_count}</td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[org.approval_status]}`}>
+                        {STATUS_LABELS[org.approval_status]}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {org.access_blocked_reason ? (
+                        <span className="text-xs text-red-600">🔒 {org.access_blocked_reason}</span>
+                      ) : (
+                        <span className="text-xs text-green-600">✓ Accès actif</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {busyId === org.id ? (
+                        <span className="text-xs text-slate-400">...</span>
+                      ) : org.approval_status === 'pending' ? (
+                        <div className="flex justify-end gap-3">
+                          <button
+                            onClick={() => runAction(org.id, () => approveOrganization(org.id))}
+                            className="text-xs font-medium text-green-600 hover:underline"
+                          >
+                            Valider
+                          </button>
+                          <button onClick={() => handleReject(org.id)} className="text-xs font-medium text-red-600 hover:underline">
+                            Rejeter
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex justify-end gap-3">
+                          {org.is_active ? (
+                            <button
+                              onClick={() => runAction(org.id, () => suspendOrganization(org.id))}
+                              className="text-xs font-medium text-red-600 hover:underline"
+                            >
+                              Suspendre
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => runAction(org.id, () => reactivateOrganization(org.id))}
+                              className="text-xs font-medium text-green-600 hover:underline"
+                            >
+                              Réactiver
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </main>
+    </div>
+  )
+}
+
+function StatCard({ label, value, accent }: { label: string; value: string | number; accent?: 'amber' | 'red' | 'green' }) {
+  const color = accent === 'amber' ? 'text-amber-600' : accent === 'red' ? 'text-red-600' : accent === 'green' ? 'text-green-600' : 'text-slate-900'
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className={`mt-1 text-xl font-semibold ${color}`}>{value}</p>
+    </div>
+  )
+}
