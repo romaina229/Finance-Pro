@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\BudgetLine;
 use App\Models\Expense;
 use App\Models\Organization;
 use App\Services\FinancialPostingService;
@@ -26,7 +27,40 @@ class ExpenseController extends Controller
     public function update(Request $request, Organization $organization, Expense $expense){abort_if($expense->organization_id!==$organization->id,404);if(!in_array($expense->status,['draft','rejected']))return response()->json(['message'=>'Seule une dépense en brouillon ou rejetée peut être modifiée.'],422);$validator=Validator::make($request->all(),$this->rules(true,$request->input('project_id')??$expense->project_id));if($validator->fails())throw new ValidationException($validator);$expense->update($validator->validated());return response()->json(['data'=>$expense->fresh(['project','category','budgetLine','paymentMethod','cashRegister','bankAccount'])]);}
     public function destroy(Request $request, Organization $organization, Expense $expense){abort_if($expense->organization_id!==$organization->id,404);if($expense->status!=='draft')return response()->json(['message'=>'Seule une dépense en brouillon peut être supprimée. Utilisez le rejet pour les autres statuts.'],422);$expense->delete();return response()->json(['message'=>'Dépense supprimée.']);}
     public function submit(Request $request, Organization $organization, Expense $expense){abort_if($expense->organization_id!==$organization->id,404);if(!in_array($expense->status,['draft','rejected']))return response()->json(['message'=>'Cette dépense ne peut pas être soumise dans son état actuel.'],422);$expense->update(['status'=>'pending_approval','submitted_at'=>now(),'rejection_reason'=>null]);return response()->json(['data'=>$expense->fresh()]);}
-    public function approve(Request $request, Organization $organization, Expense $expense){abort_if($expense->organization_id!==$organization->id,404);if($expense->status!=='pending_approval')return response()->json(['message'=>'Seule une dépense en attente peut être approuvée.'],422);$expense->update(['status'=>'approved','approved_by'=>$request->user()->id,'approved_at'=>now()]);return response()->json(['data'=>$expense->fresh()]);}
+    public function approve(Request $request, Organization $organization, Expense $expense){abort_if($expense->organization_id!==$organization->id,404);if($expense->status!=='pending_approval')return response()->json(['message'=>'Seule une dépense en attente peut être approuvée.'],422);
+        // Contrôle budgétaire : n'intervient qu'ici (pas à la création) car seules
+        // les dépenses approuvées/payées comptent dans la consommation reelle
+        // d'une ligne budgétaire (voir BudgetLineController). Non bloquant de
+        // façon permanente : l'approbateur peut sciemment dépasser le budget en
+        // renvoyant override_budget_control=true, mais ne peut pas le faire par
+        // inadvertance — l'API refuse par défaut et explique le dépassement chiffré.
+        if ($expense->budget_line_id && ! $request->boolean('override_budget_control')) {
+            $line = BudgetLine::find($expense->budget_line_id);
+            if ($line) {
+                $alreadyConsumed = (float) Expense::where('budget_line_id', $line->id)
+                    ->where('id', '!=', $expense->id)
+                    ->whereIn('status', ['approved', 'paid'])
+                    ->sum('amount_in_org_currency');
+                $wouldBeTotal = $alreadyConsumed + (float) $expense->amount_in_org_currency;
+                $planned = (float) $line->planned_amount;
+
+                if ($wouldBeTotal > $planned) {
+                    return response()->json([
+                        'message' => "Cette approbation dépasserait le budget de la ligne « {$line->label} » de " . number_format($wouldBeTotal - $planned, 2, ',', ' ') . " {$line->currency}.",
+                        'budget_control' => [
+                            'budget_line' => $line->label,
+                            'planned' => $planned,
+                            'already_consumed' => $alreadyConsumed,
+                            'this_amount' => (float) $expense->amount_in_org_currency,
+                            'would_be_total' => $wouldBeTotal,
+                            'overage' => $wouldBeTotal - $planned,
+                            'currency' => $line->currency,
+                        ],
+                    ], 422);
+                }
+            }
+        }
+        $expense->update(['status'=>'approved','approved_by'=>$request->user()->id,'approved_at'=>now()]);return response()->json(['data'=>$expense->fresh()]);}
     public function reject(Request $request, Organization $organization, Expense $expense){abort_if($expense->organization_id!==$organization->id,404);$validator=Validator::make($request->all(),['rejection_reason'=>['required','string','max:500']]);if($validator->fails())throw new ValidationException($validator);if($expense->status!=='pending_approval')return response()->json(['message'=>'Seule une dépense en attente peut être rejetée.'],422);$expense->update(['status'=>'rejected','rejection_reason'=>$request->rejection_reason]);return response()->json(['data'=>$expense->fresh()]);}
     public function markPaid(Request $request, Organization $organization, Expense $expense, FinancialPostingService $posting){abort_if($expense->organization_id!==$organization->id,404);if($expense->status!=='approved')return response()->json(['message'=>'Seule une dépense approuvée peut être marquée payée.'],422);DB::transaction(function()use($expense,$posting){$posting->postExpense($expense);$expense->update(['status'=>'paid']);});return response()->json(['data'=>$expense->fresh(['paymentMethod','cashRegister','bankAccount'])]);}
     private function rules(bool $isUpdate=false, ?string $projectId=null):array{$req=$isUpdate?'sometimes':'required';return ['project_id'=>[$req,'uuid','exists:projects,id'],'category_id'=>['nullable','uuid','exists:expense_categories,id'],'budget_line_id'=>['nullable','uuid',$projectId?Rule::exists('budget_lines','id')->where('project_id',$projectId):'exists:budget_lines,id'],'amount'=>[$req,'numeric','min:0.01'],'currency'=>['nullable','string','size:3','exists:currencies,code'],'supplier_name'=>['nullable','string','max:255'],'supplier_contact'=>['nullable','string','max:150'],'payment_method_id'=>[$req,'integer','exists:payment_methods,id'],'cash_register_id'=>['nullable','uuid','exists:cash_registers,id'],'bank_account_id'=>['nullable','uuid','exists:bank_accounts,id'],'payment_reference'=>['nullable','string','max:100'],'expense_date'=>[$req,'date'],'description'=>['nullable','string']];}
