@@ -86,7 +86,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('banks/{bankAccount}/transactions', [\App\Http\Controllers\Api\BankController::class, 'transactions']);
         Route::post('banks/{bankAccount}/transactions', [\App\Http\Controllers\Api\BankController::class, 'storeTransaction'])->middleware('permission:bank.manage');
         Route::get('banks/{bankAccount}/reconciliations', [\App\Http\Controllers\Api\BankController::class, 'reconciliations']);
-        Route::post('banks/{bankAccount}/reconciliations', [CashController::class, 'reconcile'])->middleware('permission:bank.manage');
+        Route::post('banks/{bankAccount}/reconciliations', [\App\Http\Controllers\Api\BankController::class, 'reconcile'])->middleware('permission:bank.manage');
         Route::apiResource('documents', DocumentController::class)->only(['index', 'store', 'show', 'destroy']);
         Route::get('documents/{document}/download', [DocumentController::class, 'download']);
         Route::get('reports', [ReportController::class, 'summary'])->middleware('permission:reports.view');
