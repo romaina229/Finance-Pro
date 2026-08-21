@@ -6,30 +6,28 @@ use App\Models\Payment;
 use Illuminate\Http\Request;
 
 /**
- * Interface commune à fedapay (agrégateur, recommandé) et aux opérateurs
- * directs (MTN, Moov, Orange). Chaque driver encapsule les particularités
- * de l'API du fournisseur ; le reste de l'application (PaymentController)
- * ne connaît que cette interface.
+ * Interface commune aux deux agrégateurs de paiement de l'abonnement :
+ * FedaPay et Kkiapay. Chaque driver encapsule les particularités de l'API
+ * du fournisseur ; le reste de l'application ne connaît que cette interface.
  */
 interface PaymentGatewayDriver
 {
     /**
-     * Démarre une transaction de paiement. Retourne un tableau avec au
-     * minimum 'provider_transaction_id' et, si le fournisseur fonctionne
-     * par redirection (fedapay), 'checkout_url'.
+     * Démarre un paiement. Retourne au minimum un identifiant fournisseur
+     * lorsqu'il est déjà connu, et peut retourner un checkout_url ou une
+     * configuration nécessaire à un widget côté client.
      */
     public function initiate(Payment $payment, string $phoneNumber): array;
 
     /**
-     * Vérifie l'authenticité d'un webhook entrant (signature HMAC, jeton
-     * secret partagé...) avant de faire confiance à son contenu.
+     * Vérifie l'authenticité d'un webhook entrant avant de faire confiance
+     * à son contenu.
      */
     public function verifyWebhookSignature(Request $request): bool;
 
     /**
-     * Extrait du corps du webhook l'identifiant de transaction et le
-     * nouveau statut, dans un format normalisé.
-     * Retourne ['provider_transaction_id' => string, 'status' => 'confirmed'|'failed', 'raw' => array]
+     * Extrait du corps du webhook l'identifiant de transaction et le statut
+     * dans un format normalisé.
      */
     public function parseWebhookPayload(Request $request): array;
 }
