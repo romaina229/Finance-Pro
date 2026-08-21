@@ -27,9 +27,9 @@ export default function SuperAdminLogin() {
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-xl border border-slate-800 bg-slate-900 p-8 shadow-xl">
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-500">Espace plateforme</p>
-        <h1 className="text-xl font-semibold text-white mb-1">Super Admin</h1>
-        <p className="text-sm text-slate-400 mb-6">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-500 text-center">Espace plateforme</p>
+        <h1 className="text-xl font-semibold text-white mb-1 mt-2 text-center">Super Admin</h1>
+        <p className="text-sm text-slate-400 mb-6 mt-3 text-center">
           Supervision de toutes les organisations — accès réservé à l'équipe Finance Pro.
         </p>
 
