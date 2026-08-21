@@ -53,14 +53,18 @@ class PaymentController extends Controller
         $provider = (string) $request->input('provider');
         $phoneNumber = (string) $request->input('phone_number');
 
-        // Réutilise une tentative encore en attente pour éviter de créer
-        // plusieurs paiements concurrents pour la même facture.
-        $payment = Payment::where('invoice_id', $invoice->id)
-            ->where('organization_id', $organization->id)
-            ->where('provider', $provider)
-            ->where('status', 'pending')
-            ->latest('created_at')
-            ->first();
+        // Kkiapay démarre le paiement uniquement après l'ouverture du widget,
+        // donc une tentative pending peut être réutilisée. FedaPay crée une
+        // transaction externe à chaque initiation et doit conserver son propre
+        // enregistrement pour que ses webhooks restent rapprochables.
+        $payment = $provider === 'kkiapay'
+            ? Payment::where('invoice_id', $invoice->id)
+                ->where('organization_id', $organization->id)
+                ->where('provider', 'kkiapay')
+                ->where('status', 'pending')
+                ->latest('created_at')
+                ->first()
+            : null;
 
         if ($payment) {
             $payment->update(['phone_number' => $phoneNumber]);
@@ -183,8 +187,6 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Transaction inconnue.'], 404);
         }
 
-        // Une confirmation ne doit jamais être rétrogradée par un événement
-        // d'échec reçu ensuite ou par un retry mal ordonné.
         if ($payment->status === 'confirmed' && $parsed['status'] !== 'confirmed') {
             return response()->json(['message' => 'ok']);
         }
