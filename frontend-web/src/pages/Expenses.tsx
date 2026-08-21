@@ -8,6 +8,7 @@ import { fetchCashRegisters, type CashRegister } from '../services/cash'
 import { fetchBankAccounts, type BankAccount } from '../services/bank'
 import { formatDate } from '../utils/date'
 import { fetchBudgetLines, type BudgetLine as BudgetLineOption } from '../services/budgets'
+import { BudgetOverageModal, type BudgetOverageDetails } from '../components/BudgetOverageModal'
 import { fetchExpenses, createExpense, deleteExpense, submitExpense, approveExpense, rejectExpense, markExpensePaid, type Expense, type ExpenseStatus, type ExpensePayload } from '../services/expenses'
 
 const STATUS_LABELS: Record<ExpenseStatus, string> = { draft: 'Brouillon', pending_approval: 'En attente', approved: 'Approuvée', rejected: 'Rejetée', paid: 'Payée' }
@@ -74,6 +75,9 @@ export default function Expenses() {
   async function runAction(action: () => Promise<any>) { setError(null); try { await action(); await load() } catch (err: any) { const messages = err.response?.data?.errors; setError(messages ? Object.values(messages).flat().join(' ') : err.response?.data?.message ?? 'Action impossible.') } }
   function handleReject(id: string) { if (!currentOrganization) return; const reason = prompt('Motif du rejet :'); if (reason) runAction(() => rejectExpense(currentOrganization.id, id, reason)) }
 
+  const [budgetOverage, setBudgetOverage] = useState<{ expenseId: string; details: BudgetOverageDetails } | null>(null)
+  const [confirmingOverage, setConfirmingOverage] = useState(false)
+
   async function handleApprove(id: string) {
     if (!currentOrganization) return
     setError(null)
@@ -83,20 +87,25 @@ export default function Expenses() {
     } catch (err: any) {
       const control = err.response?.data?.budget_control
       if (control) {
-        const confirmed = confirm(
-          `⚠️ Dépassement budgétaire\n\nLigne « ${control.budget_line} »\n` +
-          `Prévu : ${control.planned.toLocaleString('fr-FR')} ${control.currency}\n` +
-          `Déjà consommé : ${control.already_consumed.toLocaleString('fr-FR')} ${control.currency}\n` +
-          `Cette dépense : ${control.this_amount.toLocaleString('fr-FR')} ${control.currency}\n` +
-          `Dépassement : ${control.overage.toLocaleString('fr-FR')} ${control.currency}\n\n` +
-          `Approuver quand même ?`
-        )
-        if (confirmed) {
-          runAction(() => approveExpense(currentOrganization.id, id, true))
-        }
+        setBudgetOverage({ expenseId: id, details: control })
         return
       }
       setError(err.response?.data?.message ?? 'Action impossible.')
+    }
+  }
+
+  async function confirmBudgetOverage() {
+    if (!currentOrganization || !budgetOverage) return
+    setConfirmingOverage(true)
+    try {
+      await approveExpense(currentOrganization.id, budgetOverage.expenseId, true)
+      setBudgetOverage(null)
+      await load()
+    } catch (err: any) {
+      setError(err.response?.data?.message ?? 'Action impossible.')
+      setBudgetOverage(null)
+    } finally {
+      setConfirmingOverage(false)
     }
   }
 
@@ -126,5 +135,13 @@ export default function Expenses() {
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">{(['', 'draft', 'pending_approval', 'approved', 'rejected', 'paid'] as const).map(s => <button key={s} onClick={() => setStatusFilter(s)} className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${statusFilter === s ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-600'}`}>{s === '' ? 'Toutes' : STATUS_LABELS[s]}</button>)}</div>
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="overflow-x-auto">{loading ? <p className="p-6 text-sm text-slate-500">Chargement...</p> : expenses.length === 0 ? <p className="p-8 text-center text-sm text-slate-400">Aucune dépense.</p> : <table className="min-w-[900px] w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-400"><tr><th className="px-4 py-3">Date</th><th className="px-4 py-3">Projet</th><th className="px-4 py-3">Fournisseur</th><th className="px-4 py-3">Montant</th><th className="px-4 py-3">Règlement</th><th className="px-4 py-3">Statut</th><th className="px-4 py-3"></th></tr></thead><tbody>{expenses.map(exp => { const pendingSync = (exp as any)._offlineQueued; return <tr key={exp.id} className={`border-t border-slate-100 ${pendingSync ? 'bg-amber-50/40' : ''}`}><td className="px-4 py-3 text-slate-600">{formatDate(exp.expense_date)}</td><td className="px-4 py-3 font-medium text-slate-900">{exp.project?.code ?? '—'}</td><td className="px-4 py-3 text-slate-600">{exp.supplier_name ?? '—'}</td><td className="px-4 py-3 font-semibold text-slate-800">{Number(exp.amount).toLocaleString('fr-FR')} {exp.currency}</td><td className="px-4 py-3 text-xs text-slate-500">{exp.cash_register?.name ?? exp.bank_account?.name ?? exp.payment_method?.name ?? '—'}</td><td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs ${STATUS_COLORS[exp.status]}`}>{STATUS_LABELS[exp.status]}</span>{pendingSync && <span className="ml-1.5 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">⏳ en attente de sync</span>}</td><td className="whitespace-nowrap px-4 py-3 text-right">{pendingSync ? <span className="text-xs text-slate-400">Actions disponibles après synchronisation</span> : <>{(exp.status === 'draft' || exp.status === 'rejected') && currentOrganization && <><button onClick={() => runAction(() => submitExpense(currentOrganization.id, exp.id))} className="mr-3 text-xs font-medium text-blue-600">Soumettre</button>{exp.status === 'draft' && <button onClick={() => runAction(() => deleteExpense(currentOrganization.id, exp.id))} className="text-xs font-medium text-red-600">Supprimer</button>}</>}{exp.status === 'pending_approval' && currentOrganization && <><button onClick={() => handleApprove(exp.id)} className="mr-3 text-xs font-medium text-green-600">Approuver</button><button onClick={() => handleReject(exp.id)} className="text-xs font-medium text-red-600">Rejeter</button></>}{exp.status === 'approved' && currentOrganization && <button onClick={() => runAction(() => markExpensePaid(currentOrganization.id, exp.id))} className="text-xs font-medium text-green-700">Marquer payée</button>}</>}</td></tr> })}</tbody></table>}</div></div>
     </div>
+    {budgetOverage && (
+      <BudgetOverageModal
+        details={budgetOverage.details}
+        confirming={confirmingOverage}
+        onConfirm={confirmBudgetOverage}
+        onCancel={() => setBudgetOverage(null)}
+      />
+    )}
   </main></div>
 }

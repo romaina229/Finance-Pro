@@ -42,6 +42,7 @@ export default function App() {
 
     <Route path="*" element={<AuthProvider><OfflineStatus /><AccessBlockedOverlay /><Routes>
       <Route path="/login" element={<Login />} /><Route path="/register" element={<Register />} />
+      <Route path="/invitation/:token" element={<AcceptInvitation />} />
       <Route path="/" element={<ProtectedArea><Dashboard /></ProtectedArea>} />
       <Route path="/organization" element={<ProtectedArea><OrganizationSettings /></ProtectedArea>} />
       <Route path="/billing" element={<ProtectedArea><Billing /></ProtectedArea>} />
