@@ -109,6 +109,7 @@ export default function Billing() {
       key: widget.public_key,
       sandbox: widget.sandbox,
       phone: phoneNumber,
+      partnerId: widget.partner_id,
       position: 'center',
       paymentmethod: ['momo', 'card'],
     })
@@ -157,8 +158,7 @@ export default function Billing() {
         <p className="mb-6 text-sm text-slate-500">
           Forfait mensuel Finance Pro — échéance le 5 de chaque mois.<br />
           <strong>Note :</strong> actuellement nous sommes en prix promotionnel. À partir du{' '}
-          <strong>1er janvier 2027</strong>, l’abonnement mensuel passera à{' '}
-          <strong>12 500 FCFA</strong>.
+          <strong>1er janvier 2027</strong>, l’abonnement mensuel passera à <strong>12 500 FCFA</strong>.
         </p>
 
         {error && (
