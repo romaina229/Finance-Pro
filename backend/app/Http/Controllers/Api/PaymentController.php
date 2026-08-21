@@ -34,10 +34,6 @@ class PaymentController extends Controller
         return response()->json(['data' => $invoices]);
     }
 
-    /**
-     * Démarre un paiement pour une facture en attente.
-     * provider = fedapay | kkiapay
-     */
     public function initiate(Request $request, Organization $organization, Invoice $invoice)
     {
         abort_if($invoice->organization_id !== $organization->id, 404);
@@ -54,20 +50,36 @@ class PaymentController extends Controller
             throw new ValidationException($validator);
         }
 
-        $payment = Payment::create([
-            'invoice_id' => $invoice->id,
-            'organization_id' => $organization->id,
-            'provider' => $request->provider,
-            'phone_number' => $request->phone_number,
-            'amount' => $invoice->amount,
-            'currency' => $invoice->currency,
-            'status' => 'pending',
-        ]);
+        $provider = (string) $request->input('provider');
+        $phoneNumber = (string) $request->input('phone_number');
+
+        // Réutilise une tentative encore en attente pour éviter de créer
+        // plusieurs paiements concurrents pour la même facture.
+        $payment = Payment::where('invoice_id', $invoice->id)
+            ->where('organization_id', $organization->id)
+            ->where('provider', $provider)
+            ->where('status', 'pending')
+            ->latest('created_at')
+            ->first();
+
+        if ($payment) {
+            $payment->update(['phone_number' => $phoneNumber]);
+        } else {
+            $payment = Payment::create([
+                'invoice_id' => $invoice->id,
+                'organization_id' => $organization->id,
+                'provider' => $provider,
+                'phone_number' => $phoneNumber,
+                'amount' => $invoice->amount,
+                'currency' => $invoice->currency,
+                'status' => 'pending',
+            ]);
+        }
 
         try {
-            $result = $this->gateways->driver($request->provider)->initiate($payment, $request->phone_number);
+            $result = $this->gateways->driver($provider)->initiate($payment, $phoneNumber);
             $payment->update([
-                'provider_transaction_id' => $result['provider_transaction_id'] ?? null,
+                'provider_transaction_id' => $result['provider_transaction_id'] ?? $payment->provider_transaction_id,
                 'raw_payload' => $result['raw'] ?? null,
             ]);
 
@@ -84,15 +96,12 @@ class PaymentController extends Controller
             ], 201);
         } catch (\Throwable $e) {
             $payment->update(['status' => 'failed']);
-            Log::error('Paiement forfait : échec initiation', ['provider' => $request->provider, 'error' => $e->getMessage()]);
+            Log::error('Paiement forfait : échec initiation', ['provider' => $provider, 'error' => $e->getMessage()]);
 
             return response()->json(['message' => $e->getMessage()], 422);
         }
     }
 
-    /**
-     * Vérifie côté serveur un paiement Kkiapay initié par le widget client.
-     */
     public function confirmKkiapay(Request $request, Organization $organization, Invoice $invoice, Payment $payment)
     {
         abort_if($invoice->organization_id !== $organization->id, 404);
@@ -147,9 +156,6 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * Webhook public : l’authenticité est vérifiée par le driver du fournisseur.
-     */
     public function webhook(Request $request, string $provider)
     {
         if (! in_array($provider, ['fedapay', 'kkiapay'], true)) {
@@ -175,6 +181,12 @@ class PaymentController extends Controller
         if (! $payment) {
             Log::warning('Webhook paiement : transaction inconnue', ['provider' => $provider, 'parsed' => $parsed]);
             return response()->json(['message' => 'Transaction inconnue.'], 404);
+        }
+
+        // Une confirmation ne doit jamais être rétrogradée par un événement
+        // d'échec reçu ensuite ou par un retry mal ordonné.
+        if ($payment->status === 'confirmed' && $parsed['status'] !== 'confirmed') {
+            return response()->json(['message' => 'ok']);
         }
 
         DB::transaction(function () use ($payment, $parsed) {
