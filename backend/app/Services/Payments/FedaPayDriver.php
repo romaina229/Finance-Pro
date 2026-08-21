@@ -40,6 +40,7 @@ class FedaPayDriver implements PaymentGatewayDriver
                 'description' => "Forfait Finance Pro — facture {$payment->invoice_id}",
                 'amount' => (int) round((float) $payment->amount),
                 'currency' => ['iso' => $payment->currency],
+                'callback_url' => config('app.frontend_url', config('app.url')) . '/billing?payment=' . $payment->id,
                 'customer' => [
                     'firstname' => $firstname,
                     'lastname' => $lastname,
@@ -90,13 +91,40 @@ class FedaPayDriver implements PaymentGatewayDriver
             return false;
         }
 
-        $signature = trim((string) $request->header('X-FEDAPAY-SIGNATURE', ''));
-        if ($signature === '') {
+        $header = trim((string) $request->header('X-FEDAPAY-SIGNATURE', ''));
+        if ($header === '') {
             return false;
         }
 
-        $expected = hash_hmac('sha256', $request->getContent(), $this->webhookSecret);
-        return hash_equals($expected, $signature);
+        $timestamp = null;
+        $signatures = [];
+        foreach (explode(',', $header) as $item) {
+            [$key, $value] = array_pad(explode('=', trim($item), 2), 2, null);
+            if ($key === 't' && is_numeric($value)) {
+                $timestamp = (int) $value;
+            } elseif ($key === 's' && $value !== null) {
+                $signatures[] = $value;
+            }
+        }
+
+        if ($timestamp === null || $signatures === []) {
+            return false;
+        }
+
+        // FedaPay signs "$timestamp.$payload" with HMAC-SHA256.
+        // Reject stale webhooks to prevent replay attacks.
+        if (abs(time() - $timestamp) > 300) {
+            return false;
+        }
+
+        $expected = hash_hmac('sha256', $timestamp . '.' . $request->getContent(), $this->webhookSecret);
+        foreach ($signatures as $signature) {
+            if (hash_equals($expected, $signature)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function parseWebhookPayload(Request $request): array
