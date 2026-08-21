@@ -18,6 +18,7 @@ export interface KkiapayWidgetConfig {
   public_key: string
   sandbox: boolean
   amount: number
+  partner_id: string
 }
 
 export async function fetchInvoices(organizationId: string) {
