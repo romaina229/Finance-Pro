@@ -7,10 +7,8 @@ class PaymentGatewayManager
     public function driver(string $provider): PaymentGatewayDriver
     {
         return match ($provider) {
-            'fedapay' => new FeedaPayDriver(),
-            'mtn' => new MtnMomoDriver(),
-            'moov' => new MoovMoneyDriver(),
-            'orange' => new OrangeMoneyDriver(),
+            'fedapay' => new FedaPayDriver(),
+            'kkiapay' => new KkiapayDriver(),
             default => throw new \InvalidArgumentException("Fournisseur de paiement inconnu : {$provider}"),
         };
     }
