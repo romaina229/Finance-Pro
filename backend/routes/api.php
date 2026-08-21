@@ -94,3 +94,25 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/download', fn () => null);
     });
 });
+
+// --- Webhooks de paiement (publics — l'authenticité est vérifiée par la
+// signature propre à chaque fournisseur, pas par un jeton Sanctum) ---
+Route::post('/payments/webhooks/{provider}', [\App\Http\Controllers\Api\PaymentController::class, 'webhook']);
+
+// --- Super Admin : compte totalement séparé, guard dédié (voir config/auth.php) ---
+Route::prefix('super-admin')->group(function () {
+    Route::post('/auth/login', [\App\Http\Controllers\Api\SuperAdmin\SuperAdminAuthController::class, 'login']);
+
+    Route::middleware('auth:super_admin')->group(function () {
+        Route::post('/auth/logout', [\App\Http\Controllers\Api\SuperAdmin\SuperAdminAuthController::class, 'logout']);
+        Route::get('/auth/me', [\App\Http\Controllers\Api\SuperAdmin\SuperAdminAuthController::class, 'me']);
+
+        Route::get('/dashboard', [\App\Http\Controllers\Api\SuperAdmin\OrganizationAdminController::class, 'dashboard']);
+        Route::get('/organizations', [\App\Http\Controllers\Api\SuperAdmin\OrganizationAdminController::class, 'index']);
+        Route::get('/organizations/{organization}', [\App\Http\Controllers\Api\SuperAdmin\OrganizationAdminController::class, 'show']);
+        Route::post('/organizations/{organization}/approve', [\App\Http\Controllers\Api\SuperAdmin\OrganizationAdminController::class, 'approve']);
+        Route::post('/organizations/{organization}/reject', [\App\Http\Controllers\Api\SuperAdmin\OrganizationAdminController::class, 'reject']);
+        Route::post('/organizations/{organization}/suspend', [\App\Http\Controllers\Api\SuperAdmin\OrganizationAdminController::class, 'suspend']);
+        Route::post('/organizations/{organization}/reactivate', [\App\Http\Controllers\Api\SuperAdmin\OrganizationAdminController::class, 'reactivate']);
+    });
+});

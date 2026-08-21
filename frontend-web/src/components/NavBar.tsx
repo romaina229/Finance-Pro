@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useOrganization } from '../context/OrganizationContext'
-import { LayoutDashboard, FolderKanban, Receipt, WalletCards, HandCoins, Calculator, Landmark, ChartNoAxesCombined, Building2, Users, Settings, LogOut, Menu, X, ChevronDown, ChevronsLeft, ChevronsRight, FileText, FileBarChart2, ShieldCheck, RefreshCw } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, Receipt, WalletCards, HandCoins, Calculator, Landmark, ChartNoAxesCombined, Building2, Users, Settings, LogOut, Menu, X, ChevronDown, ChevronsLeft, ChevronsRight, FileText, FileBarChart2, ShieldCheck, RefreshCw, CreditCard } from 'lucide-react'
 
 const sections = [
   { label: 'PRINCIPAL', items: [{ label: 'Tableau de bord', path: '/', icon: LayoutDashboard }, { label: 'Projets', path: '/projects', icon: FolderKanban }]},
@@ -14,7 +14,7 @@ const sections = [
     { label: 'Rapport et analyse', path: '/reports', icon: FileBarChart2 },
   ]},
   { label: 'CONTRÔLE', items: [{ label: 'Journal d’audit', path: '/audit', icon: ShieldCheck }, { label: 'Conflits de synchronisation', path: '/conflicts', icon: RefreshCw }]},
-  { label: 'ORGANISATION', items: [{ label: 'Organisation', path: '/organization', icon: Building2 }, { label: 'Membres', path: '/members', icon: Users }]},
+  { label: 'ORGANISATION', items: [{ label: 'Organisation', path: '/organization', icon: Building2 }, { label: 'Membres', path: '/members', icon: Users }, { label: 'Facturation', path: '/billing', icon: CreditCard }]},
 ]
 
 export function NavBar() {

@@ -108,9 +108,21 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // Le compte se connecte normalement même si UNE de ses organisations est
+        // bloquée (l'utilisateur peut appartenir à plusieurs ONG) — chaque
+        // organisation porte son propre statut d'accès, vérifié à nouveau par
+        // EnsureOrganizationAccess sur chaque requête de données.
+        $organizations = $user->organizations()->get(['organizations.id', 'organizations.name', 'organizations.acronym'])
+            ->map(fn ($org) => [
+                'id' => $org->id,
+                'name' => $org->name,
+                'acronym' => $org->acronym,
+                'access_blocked_reason' => $org->accessBlockedReason(),
+            ]);
+
         return response()->json([
             'user'          => $user,
-            'organizations' => $user->organizations()->get(['organizations.id', 'organizations.name', 'organizations.acronym']),
+            'organizations' => $organizations,
             'token'         => $token,
         ]);
     }

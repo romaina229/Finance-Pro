@@ -25,6 +25,15 @@ api.interceptors.response.use(
       localStorage.removeItem('ong_finance_pro_token')
       localStorage.removeItem('ong_finance_pro_user')
     }
+    if (error.response?.status === 402) {
+      // Organisation non validée par le Super Admin ou forfait impayé.
+      // Diffusé globalement plutôt que géré page par page : n'importe quel
+      // appel API dans l'app peut le déclencher, pas seulement les pages
+      // qui pensent à le vérifier.
+      window.dispatchEvent(new CustomEvent('ong-finance-pro:access-blocked', {
+        detail: (error.response.data as any)?.message ?? 'Accès bloqué.',
+      }))
+    }
     const method = methodOf(config)
     const offline = !navigator.onLine
     const networkFailure = !error.response
