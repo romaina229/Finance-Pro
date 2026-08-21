@@ -40,6 +40,8 @@ class KkiapayDriver implements PaymentGatewayDriver
                 'public_key' => $this->publicKey,
                 'sandbox' => $this->sandbox,
                 'amount' => (int) round((float) $payment->amount),
+                // partnerId permet de rattacher la transaction Kkiapay au paiement interne.
+                'partner_id' => (string) $payment->id,
             ],
         ];
     }
@@ -71,8 +73,13 @@ class KkiapayDriver implements PaymentGatewayDriver
 
         if ($success) {
             $returnedAmount = $data['amount'] ?? data_get($data, 'transaction.amount');
-            if ($returnedAmount !== null && (int) round((float) $returnedAmount) !== (int) round((float) $payment->amount)) {
+            if ($returnedAmount === null || (int) round((float) $returnedAmount) !== (int) round((float) $payment->amount)) {
                 throw new \RuntimeException('Le montant confirmé par Kkiapay ne correspond pas au montant de la facture.');
+            }
+
+            $partnerId = $data['partnerId'] ?? data_get($data, 'transaction.partnerId');
+            if ($partnerId !== null && (string) $partnerId !== (string) $payment->id) {
+                throw new \RuntimeException('La transaction Kkiapay ne correspond pas au paiement Finance Pro.');
             }
         }
 
