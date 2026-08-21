@@ -11,7 +11,14 @@ export interface Invoice {
   paid_at: string | null
 }
 
-export type PaymentProvider = 'fedapay' | 'mtn' | 'moov' | 'orange'
+export type PaymentProvider = 'fedapay' | 'kkiapay'
+
+export interface KkiapayWidgetConfig {
+  requires_client_widget: true
+  public_key: string
+  sandbox: boolean
+  amount: number
+}
 
 export async function fetchInvoices(organizationId: string) {
   const { data } = await api.get(`/organizations/${organizationId}/invoices`)
@@ -28,5 +35,25 @@ export async function payInvoice(
     provider,
     phone_number: phoneNumber,
   })
-  return data as { data: any; checkout_url: string | null; message: string }
+
+  return data as {
+    data: { id: string }
+    checkout_url: string | null
+    widget: KkiapayWidgetConfig | null
+    message: string
+  }
+}
+
+export async function confirmKkiapayPayment(
+  organizationId: string,
+  invoiceId: string,
+  paymentId: string,
+  transactionId: string
+) {
+  const { data } = await api.post(
+    `/organizations/${organizationId}/invoices/${invoiceId}/payments/${paymentId}/confirm-kkiapay`,
+    { transaction_id: transactionId }
+  )
+
+  return data as { data: unknown; message: string }
 }
