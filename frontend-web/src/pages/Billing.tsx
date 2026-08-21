@@ -1,14 +1,44 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { NavBar } from '../components/NavBar'
 import { useOrganization } from '../context/OrganizationContext'
-import { fetchInvoices, payInvoice, type Invoice, type PaymentProvider } from '../services/billing'
+import {
+  fetchInvoices,
+  payInvoice,
+  confirmKkiapayPayment,
+  type Invoice,
+  type PaymentProvider,
+  type KkiapayWidgetConfig,
+} from '../services/billing'
 
 const PROVIDERS: { value: PaymentProvider; label: string; recommended?: boolean }[] = [
-  { value: 'fedapay', label: 'Fedapay', recommended: true },
-  { value: 'mtn', label: 'MTN Mobile Money (direct)' },
-  { value: 'moov', label: 'Moov Money (direct)' },
-  { value: 'orange', label: 'Orange Money (direct)' },
+  { value: 'fedapay', label: 'FedaPay (Mobile Money & carte)', recommended: true },
+  { value: 'kkiapay', label: 'Kkiapay (Mobile Money & carte)' },
 ]
+
+let kkiapayScriptPromise: Promise<void> | null = null
+
+function loadKkiapayScript(): Promise<void> {
+  if (window.openKkiapayWidget) return Promise.resolve()
+  if (!kkiapayScriptPromise) {
+    kkiapayScriptPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = 'https://cdn.kkiapay.me/k.js'
+      script.async = true
+      script.onload = () => resolve()
+      script.onerror = () => reject(new Error('Impossible de charger le widget Kkiapay.'))
+      document.body.appendChild(script)
+    })
+  }
+  return kkiapayScriptPromise
+}
+
+declare global {
+  interface Window {
+    openKkiapayWidget?: (options: Record<string, unknown>) => void
+    addSuccessListener?: (cb: (response: { transactionId: string }) => void) => void
+    addFailedListener?: (cb: (error: unknown) => void) => void
+  }
+}
 
 export default function Billing() {
   const { currentOrganization } = useOrganization()
@@ -39,24 +69,83 @@ export default function Billing() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentOrganization?.id])
 
+  async function openKkiapayWidgetAndConfirm(
+    organizationId: string,
+    invoiceId: string,
+    paymentId: string,
+    widget: KkiapayWidgetConfig
+  ) {
+    await loadKkiapayScript()
+
+    window.addSuccessListener?.(async (response) => {
+      try {
+        const result = await confirmKkiapayPayment(
+          organizationId,
+          invoiceId,
+          paymentId,
+          response.transactionId
+        )
+        setPaymentMessage(result.message)
+        setPayingInvoice(null)
+        await load()
+      } catch (err: any) {
+        setError(err.response?.data?.message ?? 'La vérification du paiement Kkiapay a échoué.')
+      } finally {
+        setSubmitting(false)
+      }
+    })
+
+    window.addFailedListener?.(() => {
+      setError('Le paiement Kkiapay a échoué ou a été annulé.')
+      setSubmitting(false)
+    })
+
+    if (!window.openKkiapayWidget) {
+      throw new Error('Le widget Kkiapay est indisponible.')
+    }
+
+    window.openKkiapayWidget({
+      amount: widget.amount,
+      key: widget.public_key,
+      sandbox: widget.sandbox,
+      phone: phoneNumber,
+      partnerId: widget.partner_id,
+      position: 'center',
+      paymentmethod: ['momo', 'card'],
+    })
+  }
+
   async function handlePay(e: FormEvent) {
     e.preventDefault()
     if (!currentOrganization || !payingInvoice) return
+
     setSubmitting(true)
     setError(null)
     setPaymentMessage(null)
+
     try {
       const result = await payInvoice(currentOrganization.id, payingInvoice.id, provider, phoneNumber)
+
       if (result.checkout_url) {
         window.location.href = result.checkout_url
         return
       }
+
+      if (result.widget) {
+        await openKkiapayWidgetAndConfirm(
+          currentOrganization.id,
+          payingInvoice.id,
+          result.data.id,
+          result.widget
+        )
+        return
+      }
+
       setPaymentMessage(result.message)
       setPayingInvoice(null)
       await load()
     } catch (err: any) {
       setError(err.response?.data?.message ?? 'Le paiement a échoué.')
-    } finally {
       setSubmitting(false)
     }
   }
@@ -65,10 +154,11 @@ export default function Billing() {
     <div className="min-h-screen bg-slate-50">
       <NavBar />
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-semibold text-slate-900 mb-1">Facturation</h1>
-        <p className="text-sm text-slate-500 mb-6">
-          Forfait mensuel Finance Pro — échéance le 5 de chaque mois.<br/>
-          <strong>Note</strong> : Actuellement nous somme en prix promotionnel à partir <strong>01 Janvier 2027</strong> nous passerons à <strong>12 500 Fcfa</strong> l'abonnement mensuel.
+        <h1 className="mb-1 text-2xl font-semibold text-slate-900">Facturation</h1>
+        <p className="mb-6 text-sm text-slate-500">
+          Forfait mensuel Finance Pro — échéance le 5 de chaque mois.<br />
+          <strong>Note :</strong> actuellement nous sommes en prix promotionnel. À partir du{' '}
+          <strong>1er janvier 2027</strong>, l’abonnement mensuel passera à <strong>12 500 FCFA</strong>.
         </p>
 
         {error && (
@@ -84,9 +174,7 @@ export default function Billing() {
 
         {payingInvoice && (
           <form onSubmit={handlePay} className="mb-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-1 font-medium text-slate-900">
-              Payer la facture {payingInvoice.period_label}
-            </h2>
+            <h2 className="mb-1 font-medium text-slate-900">Payer la facture {payingInvoice.period_label}</h2>
             <p className="mb-4 text-sm text-slate-500">
               Montant : {Number(payingInvoice.amount).toLocaleString('fr-FR')} {payingInvoice.currency}
             </p>
@@ -140,7 +228,7 @@ export default function Billing() {
           {loading ? (
             <p className="p-6 text-sm text-slate-500">Chargement...</p>
           ) : invoices.length === 0 ? (
-            <p className="p-8 text-center text-sm text-slate-400">Aucune facture pour l'instant.</p>
+            <p className="p-8 text-center text-sm text-slate-400">Aucune facture pour l’instant.</p>
           ) : (
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-400">

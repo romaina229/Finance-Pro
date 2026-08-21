@@ -9,8 +9,8 @@ return [
     |
     | This file is for storing the credentials for third party services such
     | as Resend, Postmark, AWS, and more. This file provides the de facto
-    | location for this type of information, allowing packages to have
-    | a conventional file to locate the various service credentials.
+    | location for this type of information, allowing packages to have a
+    | conventional file to locate the various service credentials.
     |
     */
 
@@ -35,20 +35,20 @@ return [
         ],
     ],
 
-    // --- Paiement du forfait mensuel (voir app/Services/Payments) ---
-
-    'Fedapay' => [
-    'api_key' => env('FEDAPAY_API_KEY'),
-    'webhook_secret' => env('FEDAPAY_WEBHOOK_SECRET'),
-    'base_url' => env('FEDAPAY_BASE_URL', 'https://api.fedapay.com/v1'),
+    // --- Paiement du forfait mensuel ---
+    'fedapay' => [
+        'public_key' => env('FEDAPAY_PUBLIC_KEY'),
+        'secret_key' => env('FEDAPAY_SECRET_KEY'),
+        'environment' => env('FEDAPAY_ENVIRONMENT', 'sandbox'),
+        'webhook_secret' => env('FEDAPAY_WEBHOOK_SECRET'),
     ],
 
-    'mtn_momo' => [
-        'subscription_key' => env('MTN_MOMO_SUBSCRIPTION_KEY'),
-        'api_user' => env('MTN_MOMO_API_USER'),
-        'api_key' => env('MTN_MOMO_API_KEY'),
-        'environment' => env('MTN_MOMO_ENVIRONMENT', 'sandbox'),
-        'base_url' => env('MTN_MOMO_BASE_URL', 'https://sandbox.momodeveloper.mtn.com'),
+    'kkiapay' => [
+        'public_key' => env('KKIAPAY_PUBLIC_KEY'),
+        'private_key' => env('KKIAPAY_PRIVATE_KEY'),
+        'secret_key' => env('KKIAPAY_SECRET_KEY'),
+        'sandbox' => filter_var(env('KKIAPAY_SANDBOX', true), FILTER_VALIDATE_BOOLEAN),
+        'webhook_secret' => env('KKIAPAY_WEBHOOK_SECRET'),
     ],
 
 ];

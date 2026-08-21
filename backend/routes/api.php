@@ -24,12 +24,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/organizations', [OrganizationController::class, 'index']);
 
     Route::middleware(['org.access'])->prefix('organizations/{organization}')->group(function () {
-        // Factures et paiement du forfait : volontairement EN DEHORS de
-        // org.billing (voir EnsureOrganizationBilling) — une organisation
-        // bloquée pour impayé doit toujours pouvoir consulter et régler sa
-        // facture pour se débloquer elle-même.
+        // Factures et paiement du forfait restent accessibles même si
+        // l'organisation est bloquée par org.billing.
         Route::get('invoices', [PaymentController::class, 'invoices']);
         Route::post('invoices/{invoice}/pay', [PaymentController::class, 'initiate']);
+        Route::post('invoices/{invoice}/payments/{payment}/confirm-kkiapay', [PaymentController::class, 'confirmKkiapay']);
     });
 
     Route::middleware(['org.access', 'org.billing', AuditTrail::class])->prefix('organizations/{organization}')->group(function () {
@@ -105,18 +104,14 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
-// --- Webhooks de paiement (publics — l'authenticité est vérifiée par la
-// signature propre à chaque fournisseur, pas par un jeton Sanctum) ---
-Route::post('/payments/webhooks/{provider}', [\App\Http\Controllers\Api\PaymentController::class, 'webhook']);
+Route::post('/payments/webhooks/{provider}', [PaymentController::class, 'webhook']);
 
-// --- Super Admin : compte totalement séparé, guard dédié (voir config/auth.php) ---
 Route::prefix('super-admin')->group(function () {
     Route::post('/auth/login', [\App\Http\Controllers\Api\SuperAdmin\SuperAdminAuthController::class, 'login']);
 
     Route::middleware('auth:super_admin')->group(function () {
         Route::post('/auth/logout', [\App\Http\Controllers\Api\SuperAdmin\SuperAdminAuthController::class, 'logout']);
         Route::get('/auth/me', [\App\Http\Controllers\Api\SuperAdmin\SuperAdminAuthController::class, 'me']);
-
         Route::get('/dashboard', [\App\Http\Controllers\Api\SuperAdmin\OrganizationAdminController::class, 'dashboard']);
         Route::get('/organizations', [\App\Http\Controllers\Api\SuperAdmin\OrganizationAdminController::class, 'index']);
         Route::get('/organizations/{organization}', [\App\Http\Controllers\Api\SuperAdmin\OrganizationAdminController::class, 'show']);
