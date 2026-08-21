@@ -82,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('documents/{document}/download', [DocumentController::class, 'download']);
         Route::get('reports', [ReportController::class, 'summary'])->middleware('permission:reports.view');
         Route::post('reports/generate', [ReportController::class, 'summary'])->middleware('permission:reports.export');
+        Route::get('reports/export', [ReportController::class, 'export'])->middleware('permission:reports.export');
         Route::get('audit-logs', [AuditLogController::class, 'index'])->middleware('permission:audit.view');
         Route::get('sync/conflicts', [SyncConflictController::class, 'index']);
         Route::post('sync/conflicts', [SyncConflictController::class, 'store']);

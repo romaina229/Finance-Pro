@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { FileBarChart2, TrendingDown, TrendingUp, Wallet, RefreshCw } from 'lucide-react'
+import { FileBarChart2, TrendingDown, TrendingUp, Wallet, RefreshCw, Download } from 'lucide-react'
 import { NavBar } from '../components/NavBar'
 import { useOrganization } from '../context/OrganizationContext'
-import { fetchFinancialReport, type FinancialReport } from '../services/reports'
+import { fetchFinancialReport, downloadReportExport, type FinancialReport } from '../services/reports'
 import { formatDate } from '../utils/date'
 
 const money = (value: number) => new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value)
@@ -14,6 +14,7 @@ export default function Reports() {
   const [to, setTo] = useState(() => new Date().toISOString().slice(0, 10))
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [exporting, setExporting] = useState(false)
 
   async function load() {
     if (!currentOrganization) return
@@ -21,6 +22,14 @@ export default function Reports() {
     try { setReport(await fetchFinancialReport(currentOrganization.id, from, to)) }
     catch (e: any) { setError(e?.response?.data?.message || 'Impossible de charger le rapport.') }
     finally { setLoading(false) }
+  }
+
+  async function handleExport() {
+    if (!currentOrganization) return
+    setExporting(true); setError('')
+    try { await downloadReportExport(currentOrganization.id, from, to) }
+    catch (e: any) { setError(e?.response?.data?.message || "Impossible d'exporter les données.") }
+    finally { setExporting(false) }
   }
 
   useEffect(() => { load() }, [currentOrganization])
@@ -38,6 +47,7 @@ export default function Reports() {
             <label className="text-xs font-medium text-slate-500">Du<input type="date" value={from} onChange={e => setFrom(e.target.value)} className="mt-1 block rounded-lg border border-slate-200 px-2.5 py-2 text-sm"/></label>
             <label className="text-xs font-medium text-slate-500">Au<input type="date" value={to} onChange={e => setTo(e.target.value)} className="mt-1 block rounded-lg border border-slate-200 px-2.5 py-2 text-sm"/></label>
             <button onClick={load} disabled={loading} className="flex h-10 items-center gap-2 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"><RefreshCw size={15} className={loading ? 'animate-spin' : ''}/> Actualiser</button>
+            <button onClick={handleExport} disabled={exporting || !report} className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"><Download size={15}/> {exporting ? 'Export...' : 'Exporter (CSV)'}</button>
           </div>
         </div>
 
