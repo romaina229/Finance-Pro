@@ -61,6 +61,30 @@ export async function logout(): Promise<void> {
   }
 }
 
+export interface InvitationInfo {
+  full_name: string
+  email: string
+  organizations: { id: string; name: string }[]
+}
+
+export async function fetchInvitation(token: string): Promise<InvitationInfo> {
+  const { data } = await api.get<InvitationInfo>(`/auth/invitations/${token}`)
+  return data
+}
+
+export async function acceptInvitation(
+  token: string,
+  password: string,
+  passwordConfirmation: string
+): Promise<AuthResponse> {
+  const { data } = await api.post<AuthResponse>(`/auth/invitations/${token}/accept`, {
+    password,
+    password_confirmation: passwordConfirmation,
+  })
+  persistSession(data)
+  return data
+}
+
 export function getCurrentUser(): User | null {
   const raw = localStorage.getItem('ong_finance_pro_user')
   return raw ? JSON.parse(raw) : null

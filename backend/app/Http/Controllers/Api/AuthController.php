@@ -141,4 +141,68 @@ class AuthController extends Controller
             'organizations' => $request->user()->organizations()->get(['organizations.id', 'organizations.name', 'organizations.acronym']),
         ]);
     }
+
+    /**
+     * Consulte une invitation (public, sans authentification) : permet à la
+     * page d'acceptation d'afficher "Bonjour {nom}, vous êtes invité(e) chez {ONG}"
+     * avant que la personne ne définisse son mot de passe.
+     */
+    public function showInvitation(Request $request, string $token)
+    {
+        $user = User::where('invitation_token', $token)
+            ->where('invitation_expires_at', '>', now())
+            ->first();
+
+        if (! $user) {
+            return response()->json(['message' => 'Ce lien d’invitation est invalide ou a expiré.'], 404);
+        }
+
+        $organizations = $user->organizations()->get(['organizations.id', 'organizations.name']);
+
+        return response()->json([
+            'full_name'     => $user->full_name,
+            'email'         => $user->email,
+            'organizations' => $organizations,
+        ]);
+    }
+
+    /**
+     * Accepte une invitation : définit le mot de passe choisi par la personne
+     * invitée, active son compte, invalide le jeton (usage unique), et la
+     * connecte directement (retourne un jeton Sanctum comme login()).
+     */
+    public function acceptInvitation(Request $request, string $token)
+    {
+        $validator = Validator::make($request->all(), [
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        $user = User::where('invitation_token', $token)
+            ->where('invitation_expires_at', '>', now())
+            ->first();
+
+        if (! $user) {
+            return response()->json(['message' => 'Ce lien d’invitation est invalide ou a expiré.'], 404);
+        }
+
+        $user->update([
+            'password'              => Hash::make($request->password),
+            'status'                => 'active',
+            'invitation_token'      => null,
+            'invitation_expires_at' => null,
+            'last_login_at'         => now(),
+        ]);
+
+        $accessToken = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'user'          => $user,
+            'organizations' => $user->organizations()->get(['organizations.id', 'organizations.name', 'organizations.acronym']),
+            'token'         => $accessToken,
+        ]);
+    }
 }

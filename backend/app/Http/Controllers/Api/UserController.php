@@ -32,7 +32,13 @@ class UserController extends Controller
                     'phone'      => $user->phone,
                     'role'       => $role ? ['id' => $role->id, 'code' => $role->code, 'name' => $role->name] : null,
                     'is_primary' => (bool) $user->pivot->is_primary,
+                    // Statut du rattachement à CETTE organisation (peut être suspendu sans
+                    // toucher au compte utilisateur global, qui peut appartenir à d'autres ONG).
                     'status'     => $user->pivot->status,
+                    // Le compte a-t-il été activé ? (invitation acceptée, mot de passe défini)
+                    // — distinct du statut de rattachement ci-dessus, qui reste "active" même
+                    // si la personne n'a jamais mis les pieds sur la plateforme.
+                    'account_status' => $user->status,
                 ];
             });
 
@@ -41,9 +47,11 @@ class UserController extends Controller
 
     /**
      * Ajoute un membre à l'organisation par email.
-     * - Si l'email correspond à un utilisateur existant : simple rattachement.
-     * - Sinon : création d'un compte "invited" avec mot de passe temporaire
-     *   (l'envoi d'email d'invitation réel est un module à part, non couvert ici).
+     * - Si l'email correspond à un utilisateur existant déjà actif : simple rattachement.
+     * - Sinon : génère un jeton d'invitation à usage unique (valable 7 jours),
+     *   à partager manuellement (copier le lien depuis la page Membres) tant
+     *   qu'aucun service d'envoi d'e-mail n'est branché. La personne définit
+     *   elle-même son mot de passe via /invitation/{token}.
      */
     public function store(Request $request, Organization $organization)
     {
@@ -61,14 +69,29 @@ class UserController extends Controller
         $role = Role::where('code', $data['role_code'])->firstOrFail();
 
         $result = DB::transaction(function () use ($data, $organization, $role) {
-            $user = User::firstOrCreate(
-                ['email' => $data['email']],
-                [
+            $existing = User::where('email', $data['email'])->first();
+            $isNewUser = ! $existing;
+            $invitationToken = null;
+
+            if ($isNewUser) {
+                $invitationToken = Str::random(48);
+                $user = User::create([
                     'full_name' => $data['full_name'] ?? $data['email'],
-                    'password'  => Hash::make(Str::random(24)),   // mot de passe temporaire, non communiqué
+                    'email'     => $data['email'],
+                    'password'  => Hash::make(Str::random(32)), // remplacé dès l'acceptation de l'invitation
                     'status'    => 'invited',
-                ]
-            );
+                    'invitation_token' => $invitationToken,
+                    'invitation_expires_at' => now()->addDays(7),
+                ]);
+            } else {
+                $user = $existing;
+                // Compte existant mais jamais activé (invité ailleurs, jamais accepté) :
+                // on régénère un jeton frais plutôt que de laisser l'ancien traîner.
+                if ($user->status === 'invited') {
+                    $invitationToken = Str::random(48);
+                    $user->update(['invitation_token' => $invitationToken, 'invitation_expires_at' => now()->addDays(7)]);
+                }
+            }
 
             if ($organization->users()->where('users.id', $user->id)->exists()) {
                 throw ValidationException::withMessages([
@@ -83,10 +106,17 @@ class UserController extends Controller
                 'status'     => 'active',
             ]);
 
-            return $user;
+            return [$user, $invitationToken];
         });
 
-        return response()->json(['data' => $result], 201);
+        [$user, $invitationToken] = $result;
+
+        return response()->json([
+            'data' => $user,
+            // Présent uniquement si un nouveau jeton a été généré — la page Membres
+            // l'affiche comme lien à copier/partager avec la personne invitée.
+            'invitation_link' => $invitationToken ? url("/invitation/{$invitationToken}") : null,
+        ], 201);
     }
 
     /**
