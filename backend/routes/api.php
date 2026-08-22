@@ -24,8 +24,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/organizations', [OrganizationController::class, 'index']);
 
     Route::middleware(['org.access'])->prefix('organizations/{organization}')->group(function () {
-        // Factures et paiement du forfait restent accessibles même si
-        // l'organisation est bloquée par org.billing.
         Route::get('invoices', [PaymentController::class, 'invoices']);
         Route::post('invoices/{invoice}/pay', [PaymentController::class, 'initiate']);
         Route::post('invoices/{invoice}/payments/{payment}/confirm-kkiapay', [PaymentController::class, 'confirmKkiapay']);
@@ -108,10 +106,12 @@ Route::post('/payments/webhooks/{provider}', [PaymentController::class, 'webhook
 
 Route::prefix('super-admin')->group(function () {
     Route::post('/auth/login', [\App\Http\Controllers\Api\SuperAdmin\SuperAdminAuthController::class, 'login']);
+    Route::post('/auth/register', [\App\Http\Controllers\Api\SuperAdmin\SuperAdminAuthController::class, 'register']);
 
     Route::middleware('auth:super_admin')->group(function () {
         Route::post('/auth/logout', [\App\Http\Controllers\Api\SuperAdmin\SuperAdminAuthController::class, 'logout']);
         Route::get('/auth/me', [\App\Http\Controllers\Api\SuperAdmin\SuperAdminAuthController::class, 'me']);
+        Route::match(['put', 'patch'], '/auth/profile', [\App\Http\Controllers\Api\SuperAdmin\SuperAdminAuthController::class, 'updateProfile']);
         Route::get('/dashboard', [\App\Http\Controllers\Api\SuperAdmin\OrganizationAdminController::class, 'dashboard']);
         Route::get('/organizations', [\App\Http\Controllers\Api\SuperAdmin\OrganizationAdminController::class, 'index']);
         Route::get('/organizations/{organization}', [\App\Http\Controllers\Api\SuperAdmin\OrganizationAdminController::class, 'show']);
