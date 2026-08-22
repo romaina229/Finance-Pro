@@ -6,6 +6,15 @@ export interface SuperAdminAccount {
   email: string
 }
 
+export interface OrganizationAdminUser {
+  id: string
+  full_name: string
+  email: string
+  phone: string | null
+  role?: { id: string; name?: string | null; code?: string | null } | null
+  pivot?: { is_primary?: boolean; status?: string; role_id?: string } | null
+}
+
 export interface AdminOrganization {
   id: string
   name: string
@@ -18,8 +27,29 @@ export interface AdminOrganization {
   access_blocked_reason: string | null
   users_count: number
   projects_count: number
-  subscription: { id: string; monthly_amount: string; status: string } | null
+  subscription: { id: string; monthly_amount: string; status: string; currency?: string } | null
   created_at: string
+}
+
+export interface AdminOrganizationDetail extends AdminOrganization {
+  legal_status?: string | null
+  registration_number?: string | null
+  city?: string | null
+  address?: string | null
+  logo_path?: string | null
+  fiscal_year_start_month?: number | null
+  approved_at?: string | null
+  approved_by?: string | null
+  users?: OrganizationAdminUser[]
+  invoices?: Array<{
+    id: string
+    period_label?: string | null
+    amount: string | number
+    currency: string
+    due_date: string
+    paid_at?: string | null
+    status: string
+  }>
 }
 
 export async function superAdminLogin(email: string, password: string) {
@@ -79,6 +109,11 @@ export async function fetchOrganizations(approvalStatus?: string, search?: strin
     params: { approval_status: approvalStatus || undefined, search: search || undefined },
   })
   return data.data as AdminOrganization[]
+}
+
+export async function fetchOrganization(id: string) {
+  const { data } = await superAdminApi.get(`/super-admin/organizations/${id}`)
+  return data.data as AdminOrganizationDetail
 }
 
 export async function approveOrganization(id: string) {
