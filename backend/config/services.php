@@ -39,7 +39,7 @@ return [
     'fedapay' => [
         'public_key' => env('FEDAPAY_PUBLIC_KEY'),
         'secret_key' => env('FEDAPAY_SECRET_KEY'),
-        'environment' => env('FEDAPAY_ENVIRONMENT', 'live'),
+        'environment' => env('FEDAPAY_ENVIRONMENT', 'sandbox'),
         'webhook_secret' => env('FEDAPAY_WEBHOOK_SECRET'),
     ],
 
@@ -47,7 +47,7 @@ return [
         'public_key' => env('KKIAPAY_PUBLIC_KEY'),
         'private_key' => env('KKIAPAY_PRIVATE_KEY'),
         'secret_key' => env('KKIAPAY_SECRET_KEY'),
-        'live' => filter_var(env('KKIAPAY_LIVE', true), FILTER_VALIDATE_BOOLEAN),
+        'sandbox' => filter_var(env('KKIAPAY_SANDBOX', true), FILTER_VALIDATE_BOOLEAN),
         'webhook_secret' => env('KKIAPAY_WEBHOOK_SECRET'),
     ],
 

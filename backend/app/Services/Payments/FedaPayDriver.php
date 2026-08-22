@@ -18,8 +18,8 @@ class FedaPayDriver implements PaymentGatewayDriver
         $this->secretKey = (string) config('services.fedapay.secret_key');
         $this->webhookSecret = (string) config('services.fedapay.webhook_secret');
         $this->baseUrl = config('services.fedapay.environment', 'sandbox') === 'live'
-            ? 'https://live.fedapay.com'
-            : 'https://sandbox.fedapay.com';
+            ? 'https://api.fedapay.com/v1'
+            : 'https://sandbox-api.fedapay.com/v1';
     }
 
     public function initiate(Payment $payment, string $phoneNumber): array
