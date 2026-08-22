@@ -28,6 +28,7 @@ import AccessBlockedOverlay from './components/AccessBlockedOverlay'
 import { SuperAdminAuthProvider } from './context/SuperAdminAuthContext'
 import { RequireSuperAdmin } from './pages/SuperAdmin/RequireSuperAdmin'
 import SuperAdminLogin from './pages/SuperAdmin/SuperAdminLogin'
+import SuperAdminRegister from './pages/SuperAdmin/SuperAdminRegister'
 import SuperAdminDashboard from './pages/SuperAdmin/SuperAdminDashboard'
 
 function ProtectedArea({ children }: { children: React.ReactNode }) { return <RequireAuth><OrganizationProvider>{children}</OrganizationProvider></RequireAuth> }
@@ -35,9 +36,8 @@ function ProtectedArea({ children }: { children: React.ReactNode }) { return <Re
 export default function App() {
   useEffect(() => startOfflineSync(), [])
   return <BrowserRouter><Routes>
-    {/* Espace plateforme : contexte d'authentification totalement séparé,
-        jamais mélangé avec AuthProvider (comptes d'organisation) ci-dessous. */}
     <Route path="/super-admin/login" element={<SuperAdminAuthProvider><SuperAdminLogin /></SuperAdminAuthProvider>} />
+    <Route path="/super-admin/register" element={<SuperAdminAuthProvider><SuperAdminRegister /></SuperAdminAuthProvider>} />
     <Route path="/super-admin" element={<SuperAdminAuthProvider><RequireSuperAdmin><SuperAdminDashboard /></RequireSuperAdmin></SuperAdminAuthProvider>} />
 
     <Route path="*" element={<AuthProvider><OfflineStatus /><AccessBlockedOverlay /><Routes>
