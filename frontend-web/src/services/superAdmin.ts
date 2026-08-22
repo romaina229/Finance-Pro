@@ -29,6 +29,30 @@ export async function superAdminLogin(email: string, password: string) {
   return data.admin as SuperAdminAccount
 }
 
+export async function registerSuperAdmin(full_name: string, email: string, password: string, password_confirmation: string) {
+  const { data } = await superAdminApi.post('/super-admin/auth/register', {
+    full_name,
+    email,
+    password,
+    password_confirmation,
+  })
+  setSuperAdminToken(data.token)
+  localStorage.setItem('ong_finance_pro_super_admin', JSON.stringify(data.admin))
+  return data.admin as SuperAdminAccount
+}
+
+export async function updateSuperAdminProfile(payload: {
+  full_name: string
+  email: string
+  current_password?: string
+  password?: string
+  password_confirmation?: string
+}) {
+  const { data } = await superAdminApi.put('/super-admin/auth/profile', payload)
+  localStorage.setItem('ong_finance_pro_super_admin', JSON.stringify(data.admin))
+  return data.admin as SuperAdminAccount
+}
+
 export async function superAdminLogout() {
   try {
     await superAdminApi.post('/super-admin/auth/logout')
