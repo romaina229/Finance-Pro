@@ -6,6 +6,7 @@ interface SuperAdminAuthContextValue {
   admin: SuperAdminAccount | null
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<void>
+  register: (fullName: string, email: string, password: string, passwordConfirmation: string) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -19,13 +20,18 @@ export function SuperAdminAuthProvider({ children }: { children: ReactNode }) {
     setAdmin(account)
   }
 
+  async function register(fullName: string, email: string, password: string, passwordConfirmation: string) {
+    const account = await superAdminService.registerSuperAdmin(fullName, email, password, passwordConfirmation)
+    setAdmin(account)
+  }
+
   async function logout() {
     await superAdminService.superAdminLogout()
     setAdmin(null)
   }
 
   return (
-    <SuperAdminAuthContext.Provider value={{ admin, isAuthenticated: Boolean(admin), login, logout }}>
+    <SuperAdminAuthContext.Provider value={{ admin, isAuthenticated: Boolean(admin), login, register, logout }}>
       {children}
     </SuperAdminAuthContext.Provider>
   )
