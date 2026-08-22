@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useSuperAdminAuth } from '../../context/SuperAdminAuthContext'
 
 export default function SuperAdminLogin() {
@@ -68,6 +68,13 @@ export default function SuperAdminLogin() {
             {loading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
+
+        <div className="mt-6 border-t border-slate-800 pt-5 text-center text-sm text-slate-500">
+          <span>Pas encore de compte ? </span>
+          <Link to="/super-admin/register" className="font-medium text-amber-500 hover:text-amber-400">
+            Créer le premier compte Super Admin
+          </Link>
+        </div>
       </div>
     </div>
   )
