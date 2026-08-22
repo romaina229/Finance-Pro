@@ -30,6 +30,7 @@ import { RequireSuperAdmin } from './pages/SuperAdmin/RequireSuperAdmin'
 import SuperAdminLogin from './pages/SuperAdmin/SuperAdminLogin'
 import SuperAdminRegister from './pages/SuperAdmin/SuperAdminRegister'
 import SuperAdminDashboard from './pages/SuperAdmin/SuperAdminDashboard'
+import SuperAdminProfile from './pages/SuperAdmin/SuperAdminProfile'
 
 function ProtectedArea({ children }: { children: React.ReactNode }) { return <RequireAuth><OrganizationProvider>{children}</OrganizationProvider></RequireAuth> }
 
@@ -39,6 +40,7 @@ export default function App() {
     <Route path="/super-admin/login" element={<SuperAdminAuthProvider><SuperAdminLogin /></SuperAdminAuthProvider>} />
     <Route path="/super-admin/register" element={<SuperAdminAuthProvider><SuperAdminRegister /></SuperAdminAuthProvider>} />
     <Route path="/super-admin" element={<SuperAdminAuthProvider><RequireSuperAdmin><SuperAdminDashboard /></RequireSuperAdmin></SuperAdminAuthProvider>} />
+    <Route path="/super-admin/profile" element={<SuperAdminAuthProvider><RequireSuperAdmin><SuperAdminProfile /></RequireSuperAdmin></SuperAdminAuthProvider>} />
 
     <Route path="*" element={<AuthProvider><OfflineStatus /><AccessBlockedOverlay /><Routes>
       <Route path="/login" element={<Login />} /><Route path="/register" element={<Register />} />
