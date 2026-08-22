@@ -8,7 +8,6 @@ use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class OrganizationAdminController extends Controller
@@ -26,8 +25,6 @@ class OrganizationAdminController extends Controller
 
         $organizations = $query->orderByDesc('created_at')->paginate(25);
 
-        // Enrichit chaque organisation avec son statut d'accès actuel (calculé),
-        // pour que la liste Super Admin affiche directement qui est bloqué et pourquoi.
         $organizations->getCollection()->transform(function (Organization $org) {
             $org->access_blocked_reason = $org->accessBlockedReason();
             return $org;
@@ -42,7 +39,11 @@ class OrganizationAdminController extends Controller
 
     public function show(Request $request, Organization $organization)
     {
-        $organization->load(['subscription', 'invoices' => fn ($q) => $q->orderByDesc('due_date')]);
+        $organization->load([
+            'subscription',
+            'invoices' => fn ($q) => $q->orderByDesc('due_date'),
+            'users' => fn ($q) => $q->wherePivot('is_primary', true)->with('role'),
+        ]);
         $organization->access_blocked_reason = $organization->accessBlockedReason();
 
         return response()->json(['data' => $organization]);
@@ -103,10 +104,6 @@ class OrganizationAdminController extends Controller
         return response()->json(['data' => $organization->fresh()]);
     }
 
-    /**
-     * Suspend manuellement l'accès (indépendamment du paiement), par exemple
-     * en cas d'abus signalé. Réversible via approve().
-     */
     public function suspend(Request $request, Organization $organization)
     {
         $organization->update(['is_active' => false]);
