@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use App\Models\Role;
 
 class OrganizationAdminController extends Controller
 {
@@ -42,11 +43,18 @@ class OrganizationAdminController extends Controller
         $organization->load([
             'subscription',
             'invoices' => fn ($q) => $q->orderByDesc('due_date'),
-            'users' => fn ($q) => $q->wherePivot('is_primary', true)->with('role'),
+            'users' => fn ($q) => $q->wherePivot('is_primary', true),
         ]);
+
+        $organization->users->each(function ($user) {
+            $user->role = Role::find($user->pivot->role_id);
+        });
+
         $organization->access_blocked_reason = $organization->accessBlockedReason();
 
-        return response()->json(['data' => $organization]);
+        return response()->json([
+            'data' => $organization
+        ]);
     }
 
     /**

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSuperAdminAuth } from '../../context/SuperAdminAuthContext'
-import { fetchDashboard, fetchOrganizations, approveOrganization, rejectOrganization, suspendOrganization, reactivateOrganization, type AdminOrganization } from '../../services/superAdmin'
+import { fetchDashboard, fetchOrganizations, rejectOrganization, suspendOrganization, reactivateOrganization, type AdminOrganization } from '../../services/superAdmin'
 
 type ApprovalFilter = '' | 'pending' | 'approved' | 'rejected'
 const STATUS_LABELS: Record<AdminOrganization['approval_status'], string> = { pending: 'En attente', approved: 'Validée', rejected: 'Rejetée' }
